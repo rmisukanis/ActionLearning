@@ -4,6 +4,8 @@ var request = require('request')
 var tools = require('./tools')
 var config = require('../config.json')
 
+require('dotenv').config({ path: '../.env' });
+
 var JWT = function () {
   var jwt = this;
 
@@ -22,7 +24,7 @@ var JWT = function () {
     expect(idTokenPayload.iss).toEqual(openid_configuration.issuer)
 
     // Step 2 : check if the aud field in idToken is same as application's clientId
-    expect(idTokenPayload.aud).toEqual(config.clientId)
+    expect(idTokenPayload.aud).toEqual(process.env.clientId)
 
     // Step 3 : ensure the timestamp has not elapsed
     expect(idTokenPayload.exp).toBeGreaterThan(Date.now() / 1000)

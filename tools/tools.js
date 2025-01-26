@@ -4,12 +4,15 @@ var ClientOAuth2 = require('client-oauth2')
 var request = require('request')
 var config = require('../config.json')
 
+require('dotenv').config({ path: '../.env' });
+
+
 var Tools = function () {
   var tools = this;
 
   var authConfig = {
-    clientId: config.clientId,
-    clientSecret: config.clientSecret,
+    clientId: process.env.clientId,
+    clientSecret: process.env.clientSecret,
     redirectUri: config.redirectUri
   }
 

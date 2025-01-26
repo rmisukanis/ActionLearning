@@ -2,6 +2,10 @@
 
 ## OAuth 2.0 - Node.js Sample App
 
+.env includes clientId & clientSecret
+configure includes redirectUri, configurationEndpoint, api_uri
+
+
 The [Intuit Developer team](https://developer.intuit.com) has written this OAuth 2.0 Sample App in Node.js to provide working examples of OAuth 2.0 concepts, and how to integrate with Intuit endpoints.
 
 
