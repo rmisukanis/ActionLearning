@@ -1,3 +1,7 @@
+const dotenv = require('dotenv');
+dotenv.config({ path: 'C:\Users\rmisu\OneDrive\Desktop\api\outh2dev\oauth2_dev\.env' });
+const { createTables, sequelize} = require('./dbconnect/post_database.js');
+
 var path = require('path')
 var config = require('./config.json')
 var express = require('express')
@@ -31,6 +35,9 @@ app.use('/api_call', require('./routes/api_call.js'))
 
 //call query payment
 app.use('/queryPayment', require('./routes/queryPayment.js'));
+
+//post query payment to database
+app.use('/postPayment', require('./routes/postPayment.js'));
 
 
 // Start server on HTTP (will use ngrok for HTTPS forwarding)
