@@ -39,6 +39,7 @@ router.post('/upload', async function (req, res) {
               "name": deposit.accountName
             },
             "TxnDate": deposit.TxnDate,
+            "PrivateNote": deposit.PrivateNote,
             "Line": [
               {
                 "Amount": deposit.amount,
