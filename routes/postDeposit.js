@@ -63,6 +63,11 @@ router.post('/upload', async function (req, res) {
     const session = req.session.realmId;
     const minorversion = 'minorversion=75'
     const accessToken = token.accessToken;
+
+    console.log('api_uri: ', api_uri);
+    console.log('realmId: ', realmId);
+    console.log('session: ', session);
+  
  
     // Setup request options for QuickBooks API
     const options = {
