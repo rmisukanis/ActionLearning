@@ -24,9 +24,7 @@ router.post('/upload', async function (req, res) {
   console.log('Using Realm ID:', realmId);
 
   try {
-    // Set minorversion for QuickBooks API
-    const minorversion = 'minorversion=75';
-
+ 
     // Function to generate the batch request for QuickBooks
     function generateBatchRequest(deposits) {
       return {
@@ -60,10 +58,16 @@ router.post('/upload', async function (req, res) {
     // Generate the batch request
     const batchRequest = generateBatchRequest(deposits);
 
+    const api_uri = config.api_uri;
+    const realmId = req.session.realmId;
+    const session = req.session.realmId;
+    const minorversion = 'minorversion=75'
+    const accessToken = token.accessToken;
+ 
     // Setup request options for QuickBooks API
     const options = {
       method: 'POST',
-      url: `https://sandbox-quickbooks.api.intuit.com/v3/company/${realmId}/batch?${minorversion}`,
+      url: `${api_uri}${realmId}/batch?${minorversion}`,
       headers: {
         Accept: 'application/json',
         'Content-Type': 'application/json',
