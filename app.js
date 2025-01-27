@@ -10,8 +10,12 @@ var app = express()
 
 app.set('views', path.join(__dirname, 'views'))
 app.set('view engine', 'ejs')
+app.use(express.json());  // This parses incoming JSON requests
+app.use(express.urlencoded({ extended: true })); 
 app.use(express.static(path.join(__dirname, 'public')))
 app.use(session({secret: 'secret', resave: 'false', saveUninitialized: 'false'}))
+
+
 
 // Initial view - loads Connect To QuickBooks Button
 app.get('/', function (req, res) {
@@ -38,6 +42,10 @@ app.use('/queryPayment', require('./routes/queryPayment.js'));
 
 //post query payment to database
 app.use('/postPayment', require('./routes/postPayment.js'));
+
+//post csv deposit file to quickbooks
+app.use('/postDeposit', require('./routes/postDeposit.js'));
+
 
 
 // Start server on HTTP (will use ngrok for HTTPS forwarding)
