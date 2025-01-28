@@ -1,3 +1,4 @@
+
 var tools = require('../tools/tools.js');
 var config = require('../config.json');
 var request = require('request');
@@ -86,7 +87,7 @@ router.post('/upload', async function (req, res) {
     // Make the API request to QuickBooks
     request(options, (error, response, body) => {
       if (error) {
-        console.error('Error making request to QuickBooks:', error);
+        console.error('Error:', error);
         return res.json({ error: 'Error making request to QuickBooks' });
       } else if (response.statusCode === 200) {
         try {
@@ -97,20 +98,14 @@ router.post('/upload', async function (req, res) {
             const processedDeposits = depositsBody.BatchItemResponse.map(item => {
               const deposit = item.Deposit;
 
-              // Log and handle the Fault if present
-              if (item.Fault) {
-                console.error(`Fault for bId: ${item.bId}:`, item.Fault);  // Log the Fault object details
-                return null;  // Skip processing for this deposit
-              } else {
-                // Extract Deposit ID and LinkedTxn information if no Fault
-                const depositId = deposit.Id;
-                const linkedTxn = deposit.Line.map(line => line.LinkedTxn).flat();  // Flatten LinkedTxn arrays
+              // Extract Deposit ID and LinkedTxn information
+              const depositId = deposit.Id;
+              const linkedTxn = deposit.Line.map(line => line.LinkedTxn).flat(); // Flatten LinkedTxn arrays
 
-                return { depositId, linkedTxn };
-              }
-            }).filter(item => item !== null); // Filter out the null entries due to Faults
+              return { depositId, linkedTxn };
+            });
 
-            // Log the extracted information of successful deposits
+            // Log the extracted information
             processedDeposits.forEach((deposit, index) => {
               console.log(`Deposit ${index + 1}:`);
               console.log(`  Deposit ID: ${deposit.depositId}`);
@@ -128,8 +123,7 @@ router.post('/upload', async function (req, res) {
           return res.json({ error: 'Error parsing QuickBooks response' });
         }
       } else {
-        // Log error when the response status is not 200
-        console.error('Error with QuickBooks API:', response.statusCode, body);
+        console.error('Error:', response.statusCode, body);
         return res.json({ error: 'Error with QuickBooks API', statusCode: response.statusCode });
       }
     });
