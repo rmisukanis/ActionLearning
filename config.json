@@ -2,7 +2,7 @@
   
     "redirectUri": "https://paymentapi-ot2f.onrender.com/callback",
     "configurationEndpoint": "https://developer.api.intuit.com/.well-known/openid_configuration/",
-    "api_uri": "https://quickbooks.api.intuit.com/v3/company/",
+    "api_uri #PRO": "https://quickbooks.api.intuit.com/v3/company/",
     "scopes": {
     "sign_in_with_intuit": [
       "openid",

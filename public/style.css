@@ -15,3 +15,8 @@ a:visited {
 #result {
   white-space: pre-wrap;
 }
+
+#sqlQueryPayment{
+  width: 500px;
+  height: 40px;
+}
