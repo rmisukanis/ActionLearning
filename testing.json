@@ -5,5 +5,5 @@
 
     "PROredirectUri": "https://paymentapi-ot2f.onrender.com/callback",
     "PROconfigurationEndpoint": "https://developer.api.intuit.com/.well-known/openid_configuration/",
-    "PROapi_uri #PRO": "https://quickbooks.api.intuit.com/v3/company/"
+    "PROapi_uri": "https://quickbooks.api.intuit.com/v3/company/"
 }
