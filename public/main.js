@@ -41,7 +41,7 @@ function parseCSV(csvData) {
 
   function consoleParseCSV(deposits) {
     const resultBox = document.getElementById('result')
-    result = '';
+    resultBox.innerHTML = '';
     // Iterate over the array
     deposits.forEach((item, index) => {
       // Create a new paragraph for each item in the array

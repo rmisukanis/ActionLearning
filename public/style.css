@@ -16,7 +16,20 @@ a:visited {
   white-space: pre-wrap;
 }
 
-#sqlQueryPayment{
+#sqlQueryPayment, #sqlGenericQuery{
   width: 500px;
   height: 40px;
 }
+
+#genericQueryBox, #paymentQuery {
+  border: 3px solid rgba(0, 0, 0, 0.2); /* Light black outline */
+  padding: 10px;
+  margin: 10px 0;
+  background-color: rgba(169, 169, 169, 0.2);
+  display: flex; 
+ 
+  align-items: center;
+  gap: 10px; 
+  height: 50px; /* Optional: set a height for the container */
+}
+

@@ -27,6 +27,51 @@
         $("#result").html(JSON.stringify(data, null, 2))
       })
     }
+    function sqlGenericQuery() {
+      $("#result").html('Loading...');  // Show a loading message
+
+      // Get the SQL query from the input field
+      var sqlQuery = $("#sqlGenericQuery").val();  // Get value of input with id 'sqlQueryPayment'
+      console.log(sqlQuery)
+
+      if (!sqlQuery) {
+        $("#result").html("Please enter a valid SQL query in box.");
+        return;
+      }
+      $.get("/queryGeneric", { query: sqlQuery }, function(data) {
+        $("#result").html("");  // Clear loading message
+
+        if (data.error) {
+          $("#result").html('Error: ' + data.error);  // Handle any errors returned from the backend
+          return;
+        }
+
+        // Render the payment summary as a table or JSON
+        //  $("#result").html(''); //clear html
+
+        $("#result").html(JSON.stringify(data, null, 2))
+        /*
+        let html = `<h3>Payment Summary</h3><table border='1'><tr><th>Customer Name</th><th>Customer ID
+          </th><th>Total Amount</th><th>Transaction Date</th><th>Payment ID</th><th>LinkedTxnId</th><th>LinkedTxnType</th><th>DepositToAccountId</th></tr>`;
+        data.paymentSummary.forEach(payment => {
+          html += `<tr>
+            <td>${payment.CustomerName}</td>
+            <td>${payment.CustomerId}</td>
+            <td>${payment.TotalAmount}</td>
+            <td>${payment.TransactionDate}</td>
+            <td>${payment.PaymentId}</td>
+            <td>${payment.LinkedTxnId}</td>
+            <td>${payment.LinkedTxnType}</td>
+            <td>${payment.DepositToAccountId}</td>
+          </tr>`;
+        });
+
+        html += "</table>";
+        $("#result").html(html);  // Display the results
+        */
+      });
+    }
+      
     function queryPayment() {
       $("#result").html('Loading...');  // Show a loading message
 
@@ -48,6 +93,7 @@
         }
 
         // Render the payment summary as a table or JSON
+        $("#result").html(''); //clear html
         let html = `<h3>Payment Summary</h3><table border='1'><tr><th>Customer Name</th><th>Customer ID
           </th><th>Total Amount</th><th>Transaction Date</th><th>Payment ID</th><th>LinkedTxnId</th><th>LinkedTxnType</th><th>DepositToAccountId</th></tr>`;
         data.paymentSummary.forEach(payment => {
@@ -119,17 +165,28 @@
     <button onclick="apiCall()">QuickBooks API Call</button>
     <button onclick="refreshCall()">Refresh Token Call</button>
     <button onclick="revokeCall()">Revoke Token Call</button><br><br>
+
+  <div id="genericQueryBox">
+    <label for="sqlGenericQuery">Enter Generic SQL Query :</label>
+    <input type="text" id="sqlGenericQuery" placeholder="Enter your SQL query here">
+    <button onclick="sqlGenericQuery()">Fetch Query From QuickBooks</button>
+  </div>
     
+  <div id="paymentQuery">
     <label for="sqlQueryPayment">Enter Payment SQL Query:</label>
     <input type="text" id="sqlQueryPayment" placeholder="Enter your Payment SQL query here">
     <button onclick="queryPayment()">Fetch Payments From QuickBooks</button>
     <button onclick="postPayment()">Post Payments To Database</button><br><br>
+  </div>
 
+  <div id="depositUploadSubmit">
     <input type="file" id="csvFile" accept=".csv">
-    <button onclick="handleFileUpload()">Upload CSV</button>
- 
+    <button onclick="handleFileUpload()">Upload Deposit To Quickbooks</button>
+  </div><br>
+
     <br><br>
     <div><code id="result"></code></div>
     <script src="/main.js" defer></script>
+  </div>
 </body>
 </html>

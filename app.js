@@ -37,6 +37,9 @@ app.use('/connected', require('./routes/connected.js'))
 // Call an example API over OAuth2
 app.use('/api_call', require('./routes/api_call.js'))
 
+//call generic query
+app.use('/queryGeneric', require('./routes/queryGeneric.js'));
+
 //call query payment
 app.use('/queryPayment', require('./routes/queryPayment.js'));
 
