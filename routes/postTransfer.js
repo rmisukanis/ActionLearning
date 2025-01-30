@@ -91,7 +91,6 @@ router.post('/upload', async function (req, res) {
           if (transferBody.BatchItemResponse) {
             const processedTransfers = transferBody.BatchItemResponse.map(item => {
               const transfer = item.Transfer;
-              const transferId = transfer.transferId
               return { transfer };
             });
             console.log('transfer full: ', processedTransfers)
