@@ -49,6 +49,9 @@ app.use('/postPayment', require('./routes/postPayment.js'));
 //post csv deposit file to quickbooks
 app.use('/postDeposit', require('./routes/postDeposit.js'));
 
+//post csv transfer file to quickbooks
+app.use('/postTransfer', require('./routes/postDeposit.js'));
+
 
 
 // Start server on HTTP (will use ngrok for HTTPS forwarding)
