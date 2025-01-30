@@ -50,7 +50,7 @@ app.use('/postPayment', require('./routes/postPayment.js'));
 app.use('/postDeposit', require('./routes/postDeposit.js'));
 
 //post csv transfer file to quickbooks
-app.use('/postTransfer', require('./routes/postDeposit.js'));
+app.use('/postTransfer', require('./routes/postTransfer.js'));
 
 
 

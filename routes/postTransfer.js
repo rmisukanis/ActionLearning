@@ -32,14 +32,14 @@ router.post('/upload', async function (req, res) {
         "BatchItemRequest": transfers.map((transfer, index) => ({
           "bId": `bid${index + 1}`,
           "operation": "create",
-          "transfer": {
+          "Transfer": {
             "FromAccountRef": {
-              "value": transfer.FromAccountRef.value,
-              "name": transfer.FromAccountRef.name
+              "value": transfer.FromAccountRefValue,
+              "name": transfer.FromAccountRefName
             },
             "ToAccountRef": {
-              "value": transfer.ToAccountRef.value,
-              "name": transfer.ToAccountRef.name
+              "value": transfer.ToAccountRefValue,
+              "name": transfer.ToAccountRefName
             },
             "Amount": transfer.Amount,
             "TxnDate": transfer.TxnDate,
@@ -86,25 +86,15 @@ router.post('/upload', async function (req, res) {
         try {
           const transferBody = JSON.parse(body);
           console.log('Success:', transferBody);
-
+    
+          
           if (transferBody.BatchItemResponse) {
             const processedTransfers = transferBody.BatchItemResponse.map(item => {
               const transfer = item.Transfer;
-
-              // Extract transfer ID and LinkedTxn information
-              const transferId = transfer.Id;
-              const linkedTxn = transfer.Line.map(line => line.LinkedTxn).flat(); // Flatten LinkedTxn arrays
-
-              return { transferId, linkedTxn };
+              const transferId = transfer.transferId
+              return { transfer };
             });
-
-            // Log the extracted information
-            processedTransfers.forEach((transfer, index) => {
-              console.log(`transfer ${index + 1}:`);
-              console.log(`  transfer ID: ${transfer.transferId}`);
-              console.log(`  Linked Transactions:`, transfer.linkedTxn);
-            });
-
+            console.log('transfer full: ', processedTransfers)
             // Send the processed transfers as a response
             return res.json({ message: 'transfers processed successfully', processedTransfers });
           } else {
