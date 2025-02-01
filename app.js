@@ -46,6 +46,12 @@ app.use('/queryPayment', require('./routes/queryPayment.js'));
 //post query payment to database
 app.use('/postPayment', require('./routes/postPayment.js'));
 
+//call query Invoice
+app.use('/queryInvoice', require('./routes/queryInvoice.js'));
+
+//post query payment to database
+app.use('/postInvoice', require('./routes/postInvoice.js'));
+
 //post csv deposit file to quickbooks
 app.use('/postDeposit', require('./routes/postDeposit.js'));
 

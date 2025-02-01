@@ -16,12 +16,12 @@ a:visited {
   white-space: pre-wrap;
 }
 
-#sqlQueryPayment, #sqlGenericQuery{
+#sqlQueryPayment, #sqlGenericQuery, #sqlQueryInvoice{
   width: 500px;
   height: 40px;
 }
 
-#genericQueryBox, #paymentQuery {
+#genericQueryBox, #paymentQuery , #invoiceQuery{
   border: 3px solid rgba(0, 0, 0, 0.2); /* Light black outline */
   padding: 10px;
   margin: 10px 0;
@@ -33,6 +33,17 @@ a:visited {
   height: 50px; /* Optional: set a height for the container */
 }
 
+#genericQueryBox {
+  border: 3px solid rgba(0, 0, 0, 0.2); /* Light black outline */
+  padding: 10px;
+  margin: 10px 0;
+  background-color: rgba(213, 203, 145, 0.8);
+  display: flex; 
+ 
+  align-items: center;
+  gap: 10px; 
+  height: 50px; /* Optional: set a height for the container */
+}
 #transferUploadSubmit, #depositUploadSubmit {
   border: 2px solid #000; /* Adjust the color and thickness of the border */
   padding: 10px; /* Optional: Add padding for better spacing */

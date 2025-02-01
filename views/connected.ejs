@@ -50,25 +50,6 @@
         //  $("#result").html(''); //clear html
 
         $("#result").html(JSON.stringify(data, null, 2))
-        /*
-        let html = `<h3>Payment Summary</h3><table border='1'><tr><th>Customer Name</th><th>Customer ID
-          </th><th>Total Amount</th><th>Transaction Date</th><th>Payment ID</th><th>LinkedTxnId</th><th>LinkedTxnType</th><th>DepositToAccountId</th></tr>`;
-        data.paymentSummary.forEach(payment => {
-          html += `<tr>
-            <td>${payment.CustomerName}</td>
-            <td>${payment.CustomerId}</td>
-            <td>${payment.TotalAmount}</td>
-            <td>${payment.TransactionDate}</td>
-            <td>${payment.PaymentId}</td>
-            <td>${payment.LinkedTxnId}</td>
-            <td>${payment.LinkedTxnType}</td>
-            <td>${payment.DepositToAccountId}</td>
-          </tr>`;
-        });
-
-        html += "</table>";
-        $("#result").html(html);  // Display the results
-        */
       });
     }
       
@@ -115,6 +96,8 @@
     function postPayment() {
   $("#result").html('Loading...');  // Show a loading message
 
+  
+
   // Get the SQL query from the input field
   var sqlQuery = $("#sqlQueryPayment").val();  // Get value of input with id 'sqlQueryPayment'
 
@@ -153,6 +136,91 @@
     $("#result").html(html);  // Display the results
   });
 }
+
+//Querying and posting Invoice information
+function queryInvoice() {
+  $("#result").html('Loading...');  // Show a loading message
+
+  // Get the SQL query from the input field
+  var sqlQuery = $("#sqlQueryInvoice").val();  // Get value of input with id 'sqlQueryInvoice'
+
+  if (!sqlQuery) {
+    $("#result").html("Please enter a valid SQL query.");
+    return;
+  }
+
+  // Send the query to the backend
+  $.get("/queryInvoice", { query: sqlQuery }, function(data) {
+    $("#result").html("");  // Clear loading message
+
+    if (data.error) {
+      $("#result").html('Error: ' + data.error);  // Handle any errors returned from the backend
+      return;
+    }
+
+    // Render the invoice summary as a table or JSON
+    $("#result").html(''); //clear html
+    let html = `<h3>Invoice Summary</h3><table border='1'><tr><th>Customer Name</th><th>Customer ID
+      </th><th>Total Amount</th><th>Transaction Date</th><th>Invoice ID</th><th>LinkedTxnId</th><th>LinkedTxnType</th><th>InvoiceDocNum</th></tr>`;
+    data.invoiceSummary.forEach(invoice => {
+      html += `<tr>
+        <td>${invoice.CustomerName}</td>
+        <td>${invoice.CustomerId}</td>
+        <td>${invoice.TotalAmount}</td>
+        <td>${invoice.TransactionDate}</td>
+        <td>${invoice.InvoiceId}</td>
+        <td>${invoice.LinkedTxnId}</td>
+        <td>${invoice.LinkedTxnType}</td>
+        <td>${invoice.InvoiceDocNum}</td>
+      </tr>`;
+    });
+    html += "</table>";
+    $("#result").html(html);  // Display the results
+  });
+}
+function postInvoice() {
+$("#result").html('Loading...');  // Show a loading message
+
+
+
+// Get the SQL query from the input field
+var sqlQuery = $("#sqlQueryInvoice").val();  // Get value of input with id 'sqlQueryInvoice'
+
+if (!sqlQuery) {
+$("#result").html("Please enter a valid SQL query.");
+return;
+}
+
+// Send the query to the backend via the correct API route (postInvoice instead of queryInvoice)
+$.get("/postInvoice", { query: sqlQuery }, function(data) {
+$("#result").html("");  // Clear loading message
+
+if (data.error) {
+  $("#result").html('Error: ' + data.error);  // Handle any errors returned from the backend
+  return;
+}
+
+// Render the invoice summary as a table
+let html = `<h3>Invoice Summary</h3><table border='1'><tr><th>Invoice ID</th><th>Customer Name</th><th>Customer ID</th>
+  <th>Total Amount</th><th>Transaction Date</th><th>LinkedTxnId</th><th>LinkedTxnType</th><th>InvoiceDocNum</th></tr>`;
+
+data.invoiceSummary.forEach(invoice => {
+  html += `<tr>
+    <td>${invoice.InvoiceId}</td>
+    <td>${invoice.CustomerName}</td>
+    <td>${invoice.CustomerId}</td>
+    <td>${invoice.TotalAmount}</td>
+    <td>${invoice.TransactionDate}</td>
+    <td>${invoice.LinkedTxnId}</td>
+    <td>${invoice.LinkedTxnType}</td>
+    <td>${invoice.InvoiceDocNum}</td>
+  </tr>`;
+});
+
+html += "</table>";
+$("#result").html(html);  // Display the results
+});
+}
   </script>
   <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
 </head>
@@ -177,6 +245,13 @@
     <input type="text" id="sqlQueryPayment" placeholder="Enter your Payment SQL query here">
     <button onclick="queryPayment()">Fetch Payments From QuickBooks</button>
     <button onclick="postPayment()">Post Payments To Database</button><br><br>
+  </div>
+
+  <div id="invoiceQuery">
+    <label for="sqlQueryInvoice">Enter Invoice SQL Query:</label>
+    <input type="text" id="sqlQueryInvoice" placeholder="Enter your Invoice SQL query here">
+    <button onclick="queryInvoice()">Fetch Invoice From QuickBooks</button>
+    <button onclick="postInvoice()">Post Invoice To Database</button><br><br>
   </div>
 
   <div id="depositUploadSubmit">

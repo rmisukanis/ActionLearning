@@ -235,10 +235,30 @@ async function InsertPayments(payments) {
     }
 }
 
+async function InsertInvoices(invoices) {
+  try {
+      // Log the current payments array to debug
+      console.log('Inserting invoices:', invoices);
+
+      // Use bulkCreate for batch insert
+      await Invoice.bulkCreate(invoices, {
+          validate: true, // Optional: validates the payments before inserting
+          ignoreDuplicates: true, // Optional: ignore duplicate entries (based on unique keys, if necessary)
+      });
+
+      console.log('All invoices inserted successfully.');
+      return true;
+  } catch (error) {
+      console.error('Error inserting invoices:', error);
+      throw error;
+  }
+}
+
 module.exports = {
     sequelize,
     createTables,
     InsertPayments,
+    InsertInvoices,
 };
 /*
 app.listen(port, () => {

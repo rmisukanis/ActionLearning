@@ -1,3 +1,6 @@
+//Posting Transaction To Quickbooks
+
+
 //function for deposit information
 function parseCSV(csvData) {
     const rows = csvData.split('\n');  // Split the data into rows
