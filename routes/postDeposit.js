@@ -29,33 +29,43 @@ router.post('/upload', async function (req, res) {
     // Function to generate the batch request for QuickBooks
     function generateBatchRequest(deposits) {
       return {
-        "BatchItemRequest": deposits.map((deposit, index) => ({
-          "bId": `bid${index + 1}`,
-          "operation": "create",
-          "Deposit": {
-            "DepositToAccountRef": {
-              "value": deposit.accountValue,
-              "name": deposit.accountName
-            },
-            "TxnDate": deposit.TxnDate,
-            "PrivateNote": deposit.PrivateNote,
-            "Line": [
-              {
-                "Amount": deposit.amount,
-                "LinkedTxn": [
-                  {
-                    "TxnId": deposit.txnId,
-                    "TxnType": "Invoice",
-                    "TxnLineId": "0"
-                  }
-                ]
+          "BatchItemRequest": deposits.map((deposit, index) => ({
+              "bId": `bid${index + 1}`,
+              "operation": "create",
+              "Deposit": {
+                  "DepositToAccountRef": {
+                      "value": deposit.accountValue,
+                      "name": deposit.accountName
+                  },
+                  "TxnDate": deposit.TxnDate,
+                  "PrivateNote": deposit.PrivateNote,
+                  "Line": [
+                      // Add fee line if feeAmount, feeValue, and feeName are present
+                      ...(deposit.feeAmount && deposit.feeValue && deposit.feeName
+                          ? [{
+                              "Amount": deposit.feeAmount,
+                              "DetailType": "DepositLineDetail",
+                              "DepositLineDetail": {
+                                  "AccountRef": {
+                                      "value": deposit.feeValue,
+                                      "name": deposit.feeName
+                                  }
+                              }
+                          }]
+                          : []),
+                      {
+                          "Amount": deposit.amount,
+                          "LinkedTxn": (deposit.payments || [deposit.txnId]).map(payment => ({
+                              "TxnId": payment, // Use the payment ID from the payments array or txnId
+                              "TxnType": "Payment",
+                              "TxnLineId": "0"
+                          }))
+                      }
+                  ]
               }
-            ]
-          }
-        }))
+          }))
       };
-    }
-
+  }
     // Generate the batch request
     const batchRequest = generateBatchRequest(deposits);
 
@@ -92,10 +102,17 @@ router.post('/upload', async function (req, res) {
       } else if (response.statusCode === 200) {
         try {
           const depositsBody = JSON.parse(body);
-          console.log('Success:', depositsBody);
+          // Check if the response contains a Fault object
+        if (depositsBody.BatchItemResponse && depositsBody.BatchItemResponse[0].Fault) {
+          const fault = depositsBody.BatchItemResponse[0].Fault;
+          console.error('API request failed:', fault);
+          return res.json({ error: 'API request failed', fault });
+        }
 
-          if (depositsBody.BatchItemResponse) {
-            const processedDeposits = depositsBody.BatchItemResponse.map(item => {
+        // Check if BatchItemResponse exists and contains Deposit objects
+        if (depositsBody.BatchItemResponse) {
+          const processedDeposits = depositsBody.BatchItemResponse.map(item => {
+            if (item.Deposit) {
               const deposit = item.Deposit;
 
               // Extract Deposit ID and LinkedTxn information
@@ -103,7 +120,11 @@ router.post('/upload', async function (req, res) {
               const linkedTxn = deposit.Line.map(line => line.LinkedTxn).flat(); // Flatten LinkedTxn arrays
 
               return { depositId, linkedTxn };
-            });
+            } else {
+              console.error('No Deposit object found in BatchItemResponse:', item);
+              return null;
+            }
+          }).filter(item => item !== null); // Filter out null values
 
             // Log the extracted information
             processedDeposits.forEach((deposit, index) => {

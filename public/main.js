@@ -3,45 +3,60 @@
 
 //function for deposit information
 function parseCSV(csvData) {
-    const rows = csvData.split('\n');  // Split the data into rows
-  
-    // Extract headers (first row) and trim any excess spaces
-    const headers = rows[0].split(',').map(header => header.trim().replace(/['"]/g, ''));
-  
-    // Initialize an empty array to hold the parsed data
-    const parsedData = [];
-  
-    // Loop through each row starting from index 1 (skip header row)
-    for (let i = 1; i < rows.length; i++) {
+  const rows = csvData.split('\n');  // Split the data into rows
+
+  // Extract headers (first row) and trim any excess spaces
+  const headers = rows[0].split(',').map(header => header.trim().replace(/['"]/g, ''));
+
+  // Initialize an empty array to hold the parsed data
+  const parsedData = [];
+
+  // Loop through each row starting from index 1 (skip header row)
+  for (let i = 1; i < rows.length; i++) {
       const row = rows[i].trim();
-  
+
       if (row) { // Skip empty rows
-        const columns = row.split(',').map(col => col.trim().replace(/['"]/g, ''));
-  
-        // Map the row data to an object using headers as keys
-        const rowData = {};
-        headers.forEach((header, index) => {
-          let value = columns[index] || ''; // Avoid undefined errors if columns are missing
-  
-          // Perform custom logic to handle specific fields
-          if (header === 'amount') {
-            value = parseFloat(value);  // Convert the 'amount' field to a number
-          } else if (header === 'TxnDate' && value) {
-            value = new Date(value).toISOString().split('T')[0];  // Convert 'txnDate' to YYYY-MM-DD format
+          const columns = row.split(',').map(col => col.trim().replace(/['"]/g, ''));
+
+          // Map the row data to an object using headers as keys
+          const rowData = {};
+          const payments = []; // Array to hold multiple payments
+
+          headers.forEach((header, index) => {
+              let value = columns[index] || ''; // Avoid undefined errors if columns are missing
+
+              // Perform custom logic to handle specific fields
+              if (header === 'amount' || header === 'feeAmount') {
+                  value = parseFloat(value);  // Convert the 'amount' and 'feeAmount' fields to numbers
+              } else if (header === 'TxnDate' && value) {
+                  value = new Date(value).toISOString().split('T')[0];  // Convert 'txnDate' to YYYY-MM-DD format
+              }
+
+              // Check if the header is for a payment (e.g., 'payment1', 'payment2', etc.)
+              if (header.startsWith('payment')) {
+                  if (value) { // Only add the payment if the value is not empty
+                      payments.push(value);
+                  }
+              } else {
+                  rowData[header] = value; // Assign the value to the corresponding header
+              }
+          });
+
+          // Add the payments array to the rowData if there are any payments
+          if (payments.length > 0) {
+              rowData.payments = payments;
+          } else if (rowData.txnId) {
+              // If no payments array exists, use txnId as the single payment ID
+              rowData.payments = [rowData.txnId];
           }
-  
-          rowData[header] = value; // Assign the value to the corresponding header
-        });
-  
-        // Push the formatted row data to the parsedData array
-        parsedData.push(rowData);
+
+          // Push the formatted row data to the parsedData array
+          parsedData.push(rowData);
       }
-    }
-  
-    return parsedData;  // Return the final array of parsed data
   }
 
-
+  return parsedData;  // Return the final array of parsed data
+}
   function consoleParseCSV(deposits) {
     const resultBox = document.getElementById('result')
     resultBox.innerHTML = '';
