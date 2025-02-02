@@ -119,6 +119,10 @@ const Payment = sequelize.define('Payment', {
       type: DataTypes.STRING(50),
       allowNull: false,
     },
+    CreditCardCCTransId: {
+      type: DataTypes.STRING(50),
+      allowNull: true,
+    },
   }, {
     tableName: 'payments', // Explicitly specify the table name (optional)
     timestamps: false, // Disable Sequelize's automatic createdAt/updatedAt columns

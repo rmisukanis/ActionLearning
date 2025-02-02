@@ -50,6 +50,7 @@ router.get('/', async function (req, res) {
         Currency: payment.CurrencyRef?.name || 'No',
         LinkedTxnId: payment.LinkedTxn?.[0]?.TxnId || 0,
         LinkedTxnType: payment.LinkedTxn?.[0]?.TxnType || 'No',
+        CreditCardCCTransId: payment.CreditCardPayment?.CreditChargeResponse?.CCTransId || 'No'
       }));
 
       console.log('Payment summary:', paymentSummary);
