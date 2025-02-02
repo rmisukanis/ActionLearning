@@ -44,7 +44,7 @@ a:visited {
   gap: 10px; 
   height: 50px; /* Optional: set a height for the container */
 }
-#transferUploadSubmit, #depositUploadSubmit {
+#transferUploadSubmit, #expenseUploadSubmit, #depositUploadSubmit {
   border: 2px solid #000; /* Adjust the color and thickness of the border */
   padding: 10px; /* Optional: Add padding for better spacing */
   border-radius: 5px; /* Optional: Add rounded corners */

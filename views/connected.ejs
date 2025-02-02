@@ -264,6 +264,11 @@ $("#result").html(html);  // Display the results
     <button onclick="handleFileUploadTransfer()">Upload Transfer To Quickbooks</button>
   </div><br>
 
+  <div id="expenseUploadSubmit">
+    <input type="file" id="csvFileExpense" accept=".csv">
+    <button onclick="handleFileUploadExpense()">Upload Expense To Quickbooks</button>
+  </div><br>
+
     <br><br>
     <div><code id="result"></code></div>
     <script src="/main.js" defer></script>
