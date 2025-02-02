@@ -77,7 +77,7 @@
         $("#result").html(''); //clear html
         let html = `<h3>Payment Summary</h3><table border='1'><tr><th>Customer Name</th><th>Customer ID
           </th><th>Total Amount</th><th>Transaction Date</th><th>Payment ID</th><th>LinkedTxnId</th><th>LinkedTxnType</th>
-          <th>DepositToAccountId</th><th>CreditCardPayment</th</tr>`;
+          <th>DepositToAccountId</th><th>CreditCardPayment</th></tr>`;
         data.paymentSummary.forEach(payment => {
           html += `<tr>
             <td>${payment.CustomerName}</td>
@@ -88,8 +88,7 @@
             <td>${payment.LinkedTxnId}</td>
             <td>${payment.LinkedTxnType}</td>
             <td>${payment.DepositToAccountId}</td>
-            <td>${payment.payment.CreditCardPayment.CreditChargeResponse.CCTransId}</td>
-            
+            <td>${payment.payment.CreditCardTransId}</td>
           </tr>`;
         });
         html += "</table>";
@@ -133,7 +132,7 @@
         <td>${payment.LinkedTxnId}</td>
         <td>${payment.LinkedTxnType}</td>
         <td>${payment.DepositToAccountRef.value}</td>
-        <td>${payment.payment.CreditCardPayment.CreditChargeResponse.CCTransId}</td>
+        <td>${payment.payment.CreditCardTransId}</td>
       </tr>`;
     });
     
