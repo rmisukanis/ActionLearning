@@ -44,6 +44,7 @@ router.post('/upload', async function (req, res) {
               "type": "Vendor"
             },
             "TxnDate": expense.TxnDate,
+            "PrivateNote": expense.PrivateNote,
             "Line": [
              {
               "Amount": expense.Amount,
