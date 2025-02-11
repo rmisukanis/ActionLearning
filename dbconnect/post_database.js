@@ -96,7 +96,7 @@ const Payment = sequelize.define('Payment', {
       allowNull: false,
     },
     TransactionDate: {
-      type: DataTypes.DATE,
+      type: DataTypes.DATEONLY,
       allowNull: false,
     },
     DepositToAccountId: {
@@ -122,6 +122,13 @@ const Payment = sequelize.define('Payment', {
     CreditCardCCTransId: {
       type: DataTypes.STRING(50),
       allowNull: true,
+    },PaymentMethod: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+    },
+    PaymentRefNum: {
+      type: DataTypes.STRING(50),
+      allowNull: false,
     },
   }, {
     tableName: 'payments', // Explicitly specify the table name (optional)
@@ -148,7 +155,7 @@ const Payment = sequelize.define('Payment', {
       allowNull: false,
     },
     TransactionDate: {
-      type: DataTypes.DATE,
+      type: DataTypes.DATEONLY,
       allowNull: false,
     },
     Balance: {
@@ -168,7 +175,7 @@ const Payment = sequelize.define('Payment', {
       allowNull: false,
     },
     DueDate: {
-      type: DataTypes.DATE,
+      type: DataTypes.DATEONLY,
       allowNull: false,
     },
   }, {
@@ -182,9 +189,8 @@ const Payment = sequelize.define('Payment', {
     DepositId: {
       type: DataTypes.INTEGER,
       primaryKey: true,
-      autoIncrement: true,
     },
-    DepositToAccountId: {
+    DepositToAccountValue: {
       type: DataTypes.INTEGER,
       allowNull: false,
     },
@@ -197,7 +203,27 @@ const Payment = sequelize.define('Payment', {
       allowNull: false,
     },
     TransactionDate: {
-      type: DataTypes.DATE,
+      type: DataTypes.DATEONLY,
+      allowNull: false,
+    },
+    PrivateNote: {
+      type: DataTypes.STRING(255),
+      allowNull: false,
+    },
+    LinkedTxnId: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+    },
+    LinkedTxnType: {
+      type: DataTypes.STRING(255),
+      allowNull: false,
+    },
+    DepositLineId: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+    },
+    DepositLineAmount: {
+      type: DataTypes.DECIMAL(10, 2),
       allowNull: false,
     },
   }, {
@@ -258,11 +284,31 @@ async function InsertInvoices(invoices) {
   }
 }
 
+async function InsertDeposits(deposits) {
+  try {
+      // Log the current payments array to debug
+      console.log('Inserting deposits:', deposits);
+
+      // Use bulkCreate for batch insert
+      await Deposit.bulkCreate(deposits, {
+          validate: true, // Optional: validates the payments before inserting
+          ignoreDuplicates: true, // Optional: ignore duplicate entries (based on unique keys, if necessary)
+      });
+
+      console.log('All deposits inserted successfully.');
+      return true;
+  } catch (error) {
+      console.error('Error inserting deposits:', error);
+      throw error;
+  }
+}
+
 module.exports = {
     sequelize,
     createTables,
     InsertPayments,
     InsertInvoices,
+    InsertDeposits,
 };
 /*
 app.listen(port, () => {

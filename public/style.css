@@ -16,12 +16,12 @@ a:visited {
   white-space: pre-wrap;
 }
 
-#sqlQueryPayment, #sqlGenericQuery, #sqlQueryInvoice{
+#sqlQueryPayment, #sqlGenericQuery, #sqlQueryInvoice, #sqlQueryDeposit {
   width: 500px;
   height: 40px;
 }
 
-#genericQueryBox, #paymentQuery , #invoiceQuery{
+#genericQueryBox, #paymentQuery , #invoiceQuery, #depositQuery{
   border: 3px solid rgba(0, 0, 0, 0.2); /* Light black outline */
   padding: 10px;
   margin: 10px 0;

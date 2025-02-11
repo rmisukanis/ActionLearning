@@ -36,31 +36,31 @@ router.get('/', async function (req, res) {
         return res.json({ error: authError, statusCode: authResponse.statusCode });
       }
       
-      const paymentsBody = JSON.parse(authResponse.body);
-      const payments = paymentsBody.QueryResponse?.Payment || [];
+      const depositsBody = JSON.parse(authResponse.body);
+      const deposits = depositsBody.QueryResponse?.Deposit || [];
       
-      const paymentSummary = payments.map(payment => ({
-        CustomerName: payment.CustomerRef?.name || 'No',
-        CustomerId: payment.CustomerRef?.value || 0,
-        TotalAmount: payment.TotalAmt || 0,
-        TransactionDate: payment.TxnDate || '1970-12-12',
-        PaymentId: payment.Id || 0,
-        DepositToAccountId: payment.DepositToAccountRef?.value || 0,
-        UnappliedAmount: payment.UnappliedAmt || 0,
-        Currency: payment.CurrencyRef?.name || 'No',
-        LinkedTxnId: payment.LinkedTxn?.[0]?.TxnId || 0,
-        LinkedTxnType: payment.LinkedTxn?.[0]?.TxnType || 'No',
-        CreditCardCCTransId: payment.CreditCardPayment?.CreditChargeResponse?.CCTransId || 'No',
-        PaymentMethod: payment.PaymentMethodRef?.value || 0,
-        PaymentRefNum: payment.PaymentRefNum || 'No'
+      console.log('deposits, ', deposits)
+      console.log('deposits Line, ', deposits[0].Line[0])
+
+      const depositSummary = deposits.map(deposit => ({
+        DepositId: deposit.Id || 0,
+        TotalAmount: deposit.TotalAmt || 0,
+        TransactionDate: deposit.TxnDate || '1970-12-12',
+        PrivateNote: deposit.PrivateNote || 'No',
+        DepositToAccountValue: deposit.DepositToAccountRef?.value || 0,
+        DepositToAccountName: deposit.DepositToAccountRef?.name || 'No',
+        LinkedTxnId: deposit.Line[0]?.LinkedTxn?.[0]?.TxnId || 0,
+        LinkedTxnType: deposit.Line[0]?.LinkedTxn?.[0]?.TxnType || No,
+        DepositLineId: deposit.Line[0]?.Id || 0,
+        DepositLineAmount: deposit.Line[0]?.Amount || 0,
       }));
 
-      console.log('Payment summary:', paymentSummary);
-      res.json({ paymentSummary });  // Send the summary to the front-end
+      console.log('Deposit summary:', depositSummary);
+      res.json({ depositSummary });  // Send the summary to the front-end
 
     } catch (error) {
-      console.error('Error during payment processing:', error);
-      res.json({ error: 'Error processing the payments.' });
+      console.error('Error during deposit processing:', error);
+      res.json({ error: 'Error processing the deposits.' });
     }
   });
 });

@@ -1,6 +1,6 @@
 const dotenv = require('dotenv');
 dotenv.config({ path: 'C:\Users\rmisu\OneDrive\Desktop\api\outh2dev\oauth2_dev\.env' });
-const { InsertPayments, sequelize} = require('../dbconnect/post_database.js');
+const { InsertDeposits, sequelize} = require('../dbconnect/post_database.js');
 
 var tools = require('../tools/tools.js')
 var config = require('../config.json')
@@ -10,7 +10,7 @@ var router = express.Router()
 
 /** /api_call **/
 router.get('/', function (req, res) {
-  const sqlQuery = req.query.query;//"select * from Payment Where Id IN ('197','231')"
+  const sqlQuery = req.query.query;//"select * from Deposit Where Id IN ('197','231')"
     if (!sqlQuery) {
       return res.json({ error: 'No SQL query provided.' });
     }
@@ -34,7 +34,7 @@ router.get('/', function (req, res) {
   //const url1 = `https://sandbox-quickbooks.api.intuit.com/v3/company/${realmId}/query?query=${encodeURIComponent(sqlQuery)}&${minorversion}`;
   //var url = config.api_uri + req.session.realmId + '/companyinfo/' + req.session.realmId
 
-  //async function queryPayment(api_uri, realmId, accessToken, sqlQuery = "SELECT * FROM Payment")
+  //async function queryDeposit(api_uri, realmId, accessToken, sqlQuery = "SELECT * FROM Payment")
 
   var url = `${api_uri}${realmId}/query?query=${encodeURIComponent(sqlQuery)}&${minorversion}`;
   console.log('Making API call to: ' + url)
@@ -56,38 +56,35 @@ request(requestObj, async function (err, response) {
       return res.json({ error: authError, statusCode: authResponse.statusCode });
     }
 
-    const paymentsBody = JSON.parse(authResponse.body);
-    const payments = paymentsBody.QueryResponse?.Payment || [];
+    const depositsBody = JSON.parse(authResponse.body);
+    const deposits = depositsBody.QueryResponse?.Deposit || [];
 
-    // Summarize Payment data
-    const paymentSummary = payments.map(payment => ({
-      CustomerName: payment.CustomerRef?.name || 'No',
-      CustomerId: payment.CustomerRef?.value || 0,
-      TotalAmount: payment.TotalAmt || 0,
-      TransactionDate: payment.TxnDate || '1970-12-12',
-      PaymentId: payment.Id || 0,
-      DepositToAccountId: payment.DepositToAccountRef?.value || 0,
-      UnappliedAmount: payment.UnappliedAmt || 0,
-      Currency: payment.CurrencyRef?.name || 'No',
-      LinkedTxnId: payment.LinkedTxn?.[0]?.TxnId || 0,
-      LinkedTxnType: payment.LinkedTxn?.[0]?.TxnType || 'No',
-      CreditCardCCTransId: payment.CreditCardPayment?.CreditChargeResponse?.CCTransId || 'No',
-      PaymentMethod: payment.PaymentMethodRef?.value || 0,
-      PaymentRefNum: payment.PaymentRefNum || 'No'
+    // Summarize Deposit data
+    const depositSummary = deposits.map(deposit => ({
+        DepositId: deposit.Id || 0,
+        TotalAmount: deposit.TotalAmt || 0,
+        TransactionDate: deposit.TxnDate || '1970-12-12',
+        PrivateNote: deposit.PrivateNote || 'No',
+        DepositToAccountValue: deposit.DepositToAccountRef?.value || 0,
+        DepositToAccountName: deposit.DepositToAccountRef?.name || 'No',
+        LinkedTxnId: deposit.Line[0]?.LinkedTxn?.[0]?.TxnId || 0,
+        LinkedTxnType: deposit.Line[0]?.LinkedTxn?.[0]?.TxnType || No,
+        DepositLineId: deposit.Line[0]?.Id || 0,
+        DepositLineAmount: deposit.Line[0]?.Amount || 0,
     }));
 
-    console.log('Payment summary:', paymentSummary);
+    console.log('Deposit summary:', depositSummary);
 
-    // Call InsertPayments to insert payment data into the database
-    console.log('Calling InsertPayments...');
-    await InsertPayments(paymentSummary);
+    // Call InsertDeposits to insert deposit data into the database
+    console.log('Calling InsertDeposits...');
+    await InsertDeposits(depositSummary);
 
-    console.log('Payments inserted successfully!');
-    res.json({ paymentSummary }); // Send summary to the front-end
+    console.log('Deposits inserted successfully!');
+    res.json({ depositSummary }); // Send summary to the front-end
 
   } catch (error) {
-    console.error('Error during payment insertion:', error);
-    res.json({ error: 'Error processing the payments or inserting into the database.' });
+    console.error('Error during deposit insertion:', error);
+    res.json({ error: 'Error processing the deposits or inserting into the database.' });
   }
 });
 
