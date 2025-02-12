@@ -68,7 +68,7 @@ request(requestObj, async function (err, response) {
         DepositToAccountValue: deposit.DepositToAccountRef?.value || 0,
         DepositToAccountName: deposit.DepositToAccountRef?.name || 'No',
         LinkedTxnId: deposit.Line[0]?.LinkedTxn?.[0]?.TxnId || 0,
-        LinkedTxnType: deposit.Line[0]?.LinkedTxn?.[0]?.TxnType || No,
+        LinkedTxnType: deposit.Line[0]?.LinkedTxn?.[0]?.TxnType || 'No',
         DepositLineId: deposit.Line[0]?.Id || 0,
         DepositLineAmount: deposit.Line[0]?.Amount || 0,
     }));
