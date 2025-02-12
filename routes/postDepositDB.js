@@ -61,16 +61,16 @@ request(requestObj, async function (err, response) {
 
     // Summarize Deposit data
     const depositSummary = deposits.map(deposit => ({
-        DepositId: deposit.Id || 0,
-        TotalAmount: deposit.TotalAmt || 0,
-        TransactionDate: deposit.TxnDate || '1970-12-12',
-        PrivateNote: deposit.PrivateNote || 'No',
-        DepositToAccountValue: deposit.DepositToAccountRef?.value || 0,
-        DepositToAccountName: deposit.DepositToAccountRef?.name || 'No',
-        LinkedTxnId: deposit.Line[0]?.LinkedTxn?.[0]?.TxnId || 0,
-        LinkedTxnType: deposit.Line[0]?.LinkedTxn?.[0]?.TxnType || 'No',
-        DepositLineId: deposit.Line[0]?.Id || 0,
-        DepositLineAmount: deposit.Line[0]?.Amount || 0,
+      DepositId: deposit.Id || 0,
+      TotalAmount: deposit.TotalAmt || 0,
+      TransactionDate: deposit.TxnDate || '1970-12-12',
+      PrivateNote: deposit.PrivateNote || 'No',
+      DepositToAccountValue: deposit.DepositToAccountRef?.value || 0,
+      DepositToAccountName: deposit.DepositToAccountRef?.name || 'No',
+      LinkedTxnId: deposit.Line?.[0]?.LinkedTxn?.[0]?.TxnId || 0,
+      LinkedTxnType: deposit.Line?.[0]?.LinkedTxn?.[0]?.TxnType || 'No',
+      DepositLineId: deposit.Line?.[0]?.Id || 0,
+      DepositLineAmount: deposit.Line?.[0]?.Amount || 0,      
     }));
 
     console.log('Deposit summary:', depositSummary);

@@ -49,10 +49,10 @@ router.get('/', async function (req, res) {
         PrivateNote: deposit.PrivateNote || 'No',
         DepositToAccountValue: deposit.DepositToAccountRef?.value || 0,
         DepositToAccountName: deposit.DepositToAccountRef?.name || 'No',
-        LinkedTxnId: deposit.Line[0]?.LinkedTxn?.[0]?.TxnId || 0,
-        LinkedTxnType: deposit.Line[0]?.LinkedTxn?.[0]?.TxnType || 'No',
-        DepositLineId: deposit.Line[0]?.Id || 0,
-        DepositLineAmount: deposit.Line[0]?.Amount || 0,
+        LinkedTxnId: deposit.Line?.[0]?.LinkedTxn?.[0]?.TxnId || 0,
+        LinkedTxnType: deposit.Line?.[0]?.LinkedTxn?.[0]?.TxnType || 'No',
+        DepositLineId: deposit.Line?.[0]?.Id || 0,
+        DepositLineAmount: deposit.Line?.[0]?.Amount || 0,  
       }));
 
       console.log('Deposit summary:', depositSummary);
