@@ -27,6 +27,20 @@
         $("#result").html(JSON.stringify(data, null, 2))
       })
     }
+
+      function queryAPITesting() {
+    fetch('/queryAPITesting')
+      .then(response => response.json())
+      .then(data => {
+        console.log('Query API result:', data);
+        alert('Query successful! Check console for results.');
+      })
+      .catch(error => {
+        console.error('Error:', error);
+        alert('Query failed!');
+      });
+  }
+
     function sqlGenericQuery() {
       $("#result").html('Loading...');  // Show a loading message
 
@@ -341,34 +355,10 @@ function queryDeposit() {
     <button onclick="postPayment()">Post Payments To Database</button><br><br>
   </div>
 
-  <div id="invoiceQuery">
-    <label for="sqlQueryInvoice">Enter Invoice SQL Query:</label>
-    <input type="text" id="sqlQueryInvoice" placeholder="Enter your Invoice SQL query here">
-    <button onclick="queryInvoice()">Fetch Invoice From QuickBooks</button>
-    <button onclick="postInvoice()">Post Invoice To Database</button><br><br>
+  <div id="queryAPITesting">
+    <label for="queryAPITesting">queryAPITesting:</label>
+    <button onclick="queryAPITesting()">queryAPITesting</button>
   </div>
-
-  <div id="depositQuery">
-    <label for="sqlQueryDeposit">Enter Deposit SQL Query:</label>
-    <input type="text" id="sqlQueryDeposit" placeholder="Enter your Deposit SQL query here">
-    <button onclick="queryDeposit()">Fetch Deposit From QuickBooks</button>
-    <button onclick="postDepositDB()">Post Deposit To Database</button><br><br>
-  </div>
-
-  <div id="depositUploadSubmit">
-    <input type="file" id="csvFile" accept=".csv">
-    <button onclick="handleFileUpload()">Upload Deposit To Quickbooks</button>
-  </div><br>
-
-  <div id="transferUploadSubmit">
-    <input type="file" id="csvFileTransfer" accept=".csv">
-    <button onclick="handleFileUploadTransfer()">Upload Transfer To Quickbooks</button>
-  </div><br>
-
-  <div id="expenseUploadSubmit">
-    <input type="file" id="csvFileExpense" accept=".csv">
-    <button onclick="handleFileUploadExpense()">Upload Expense To Quickbooks</button>
-  </div><br>
 
     <br><br>
     <div><code id="result"></code></div>
