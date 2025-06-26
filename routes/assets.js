@@ -1,21 +1,31 @@
-var tools = require('../tools/tools.js');
-var config = require('../config.json');
-var request = require('request');
-var apiService = require('../service/apiService.js');
 var express = require('express');
 var router = express.Router();
 
-/** /api_call **/
-router.get('/', async function (req, res) {
+/** local_call **/
+const sampleAssetsData = require('../data/assets');
 
-    var token = tools.getToken(req.session);
-    if (!token) return res.json({ error: 'Not authorized' });
-    if (!req.session.realmId) return res.json({ error: 'No realm ID. QBO calls only work if the accounting scope was passed!' });
-    apiService.getAssets().then(function (data) {
-        res.json(data);
-    }).catch(function (e) {
-        res.json(e);
+router.post('/data', (req, res) => {
+    const { startDate, endDate, accountFilter } = req.body;
+
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+
+    const filtered = sampleAssetsData.filter((item) => {
+        const itemDate = new Date(item.TransactionDate);
+        const matchDate = itemDate >= start && itemDate <= end;
+
+        const matchAccount =
+            !accountFilter || accountFilter === 'All Accounts' || item.BillAccountName === accountFilter;
+
+        return matchDate && matchAccount;
     });
+
+    res.json(filtered);
+});
+
+router.get('/', (req, res) => {
+
+    res.render('assets');
 });
 
 module.exports = router;

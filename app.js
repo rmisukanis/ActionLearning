@@ -37,7 +37,7 @@ app.use('/connected', require('./routes/connected.js'))
 app.use('/api_call', require('./routes/api_call.js'))
 
 //call asset query
-app.use('/asset', require('./routes/assets.js'));
+app.use('/assets', require('./routes/assets.js'));
 
 //call generic query
 app.use('/queryGeneric', require('./routes/queryGeneric.js'));

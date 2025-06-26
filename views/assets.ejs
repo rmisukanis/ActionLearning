@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" type="text/css" href="style.css">
+    <title>QuickBooks Assets Dashboard</title>
+</head>
+
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>QuickBooks Assets Management</h1>
+            <p>Comprehensive tracking and management of your business assets</p>
+        </div>
+
+        <!-- Summary Cards -->
+        <div class="summary-cards" id="summaryCards" style="display: none;">
+            <div class="summary-card">
+                <div class="summary-card-header">
+                    <div class="summary-card-icon assets">📊</div>
+                    <div class="summary-card-title">Total Assets</div>
+                </div>
+                <div class="summary-card-value" id="totalAssets">0</div>
+            </div>
+
+            <div class="summary-card">
+                <div class="summary-card-header">
+                    <div class="summary-card-icon amount">💰</div>
+                    <div class="summary-card-title">Total Value</div>
+                </div>
+                <div class="summary-card-value" id="totalAmount">$0.00</div>
+            </div>
+
+            <div class="summary-card">
+                <div class="summary-card-header">
+                    <div class="summary-card-icon accounts">🏢</div>
+                    <div class="summary-card-title">Accounts</div>
+                </div>
+                <div class="summary-card-value" id="uniqueAccounts">0</div>
+            </div>
+
+            <div class="summary-card">
+                <div class="summary-card-header">
+                    <div class="summary-card-icon range">📅</div>
+                    <div class="summary-card-title">Date Range</div>
+                </div>
+                <div class="summary-card-value" id="dateRange" style="font-size: 14px; font-weight: 600;">Select dates
+                </div>
+            </div>
+        </div>
+
+        <!-- Controls Section -->
+        <div class="controls">
+            <div class="controls-header">
+                <h2 class="controls-title">🔍 Search & Filter Assets</h2>
+            </div>
+
+            <form id="dateRangeForm" class="controls-form">
+                <div class="form-group">
+                    <label for="startDate">Start Date</label>
+                    <input type="date" id="startDate" name="startDate" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="endDate">End Date</label>
+                    <input type="date" id="endDate" name="endDate" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="accountFilter">Account Filter</label>
+                    <select id="accountFilter" name="accountFilter">
+                        <option value="">All Accounts</option>
+                        <option value="37">Truck</option>
+                        <option value="38">Office Equipment</option>
+                        <option value="39">Computer Hardware</option>
+                        <option value="40">Machinery</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <button type="submit" class="btn">🔄 Load Data</button>
+                </div>
+
+                <div class="form-group">
+                    <button type="button" class="btn btn-secondary" onclick="exportData()">📊 To be added...</button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Messages -->
+        <div id="errorMessage" class="error-message"></div>
+        <div id="successMessage" class="success-message"></div>
+
+        <!-- Loading -->
+        <div id="loading" class="loading">
+            <div class="loading-spinner"></div>
+            <p>Loading assets data from QuickBooks...</p>
+        </div>
+
+        <!-- Assets Table -->
+        <div class="table-section" id="tableSection" style="display: none;">
+            <div class="table-header">
+                <h3 class="table-title" id="tableTitle">Assets (0)</h3>
+            </div>
+
+            <div class="table-container">
+                <table class="assets-table" id="assetsTable">
+                    <thead>
+                        <tr>
+                            <th>Bill ID</th>
+                            <th>Transaction Date</th>
+                            <th>Amount</th>
+                            <th>Description</th>
+                            <th>Account</th>
+                            <th>Account Name</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="assetsTableBody">
+                        <!-- Data will be populated here -->
+                    </tbody>
+                </table>
+            </div>
+
+            <div id="noData" class="no-data" style="display: none;">
+                <div class="no-data-icon">📭</div>
+                <h3>No assets data found</h3>
+                <p>No assets found for the selected period.</p>
+                <p>Please select a different date range or check your QuickBooks data.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Modal -->
+    <div id="editModal" class="modal-overlay" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">✏️ Edit Asset</h3>
+                <label class="modal-title">Straight-line Method</label>
+            </div>
+
+            <form id="editForm" class="modal-form">
+                <input type="hidden" id="editBillId" name="billId">
+
+                <div class="form-group">
+                    <label for="editDepreciationMonths">Depriciation Period</label>
+                    <input type="number" id="editDepreciationMonths" name="depreciationMonths" placeholder="months"
+                        min="1" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="editDepreciationRate">Depreciation Rate</label>
+                    <input type="number" id="editDepreciationRate" name="depreciationRate" step="0.01" min="0" max="1"
+                        required>
+                </div>
+
+                <div class="modal-actions">
+                    <button type="button" class="btn btn-cancel" onclick="closeEditModal()">Cancel</button>
+                    <button type="submit" class="btn btn-secondary">💾 Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        let assetsData = [];
+
+        // Initialize the page
+        document.addEventListener('DOMContentLoaded', function () {
+            // Set default dates (last 30 days)
+            const endDate = new Date();
+            const startDate = new Date();
+            startDate.setDate(startDate.getDate() - 30);
+
+            document.getElementById('startDate').value = startDate.toISOString().split('T')[0];
+            document.getElementById('endDate').value = endDate.toISOString().split('T')[0];
+
+            // Show empty summary cards on load
+            updateSummary([], startDate.toISOString().split('T')[0], endDate.toISOString().split('T')[0]);
+        });
+
+        // Handle form submission
+        document.getElementById('dateRangeForm').addEventListener('submit', function (e) {
+            e.preventDefault();
+            loadAssetsData();
+        });
+
+        // Handle edit form submission
+        document.getElementById('editForm').addEventListener('submit', function (e) {
+            e.preventDefault();
+            saveAssetChanges();
+        });
+
+        async function loadAssetsData() {
+            const startDate = document.getElementById('startDate').value;
+            const endDate = document.getElementById('endDate').value;
+            const accountFilter = document.getElementById('accountFilter').value;
+
+            if (!startDate || !endDate) {
+                showError('Please select both start and end dates.');
+                return;
+            }
+
+            showLoading(true);
+            hideMessages();
+
+            try {
+                const response = await fetch('/assets/data', {// Update the URL to match server endpoint
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        startDate: startDate,
+                        endDate: endDate,
+                        accountFilter: accountFilter
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const data = await response.json();
+                assetsData = data || [];
+
+                displayAssetsData(assetsData);
+                updateSummary(assetsData, startDate, endDate);
+                showSuccess('Assets data loaded successfully!');
+
+            } catch (error) {
+                console.error('Error loading assets data:', error);
+                showError('Failed to load assets data. Please check your connection and try again.');
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        function displayAssetsData(data) {
+            const tableBody = document.getElementById('assetsTableBody');
+            const tableSection = document.getElementById('tableSection');
+            const noData = document.getElementById('noData');
+            const tableTitle = document.getElementById('tableTitle');
+
+            tableBody.innerHTML = '';
+
+            if (!data || data.length === 0) {
+                tableSection.style.display = 'block';
+                noData.style.display = 'block';
+                tableTitle.textContent = 'Assets (0)';
+                return;
+            }
+
+            tableSection.style.display = 'block';
+            noData.style.display = 'none';
+            tableTitle.textContent = `Assets (${data.length})`;
+
+            data.forEach(asset => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td><strong>${asset.BillId}</strong></td>
+                    <td class="date">${formatDate(asset.TransactionDate)}</td>
+                    <td class="amount">$${formatNumber(asset.TotalAmount)}</td>
+                    <td>${asset.BillDescription}</td>
+                    <td><span class="account-tag">${asset.BillAccount}</span></td>
+                    <td><strong>${asset.BillAccountName}</strong></td>
+                    <td>
+                        <button class="btn-edit" onclick="editAsset('${asset.BillId}')">Edit✏️</button>
+                    </td>
+                `;
+                tableBody.appendChild(row);
+            });
+        }
+
+        function updateSummary(data, startDate, endDate) {
+            const summaryCards = document.getElementById('summaryCards');
+            const totalAssets = document.getElementById('totalAssets');
+            const totalAmount = document.getElementById('totalAmount');
+            const uniqueAccounts = document.getElementById('uniqueAccounts');
+            const dateRange = document.getElementById('dateRange');
+
+            if (!data || data.length === 0) {
+                summaryCards.style.display = 'grid';
+                totalAssets.textContent = '0';
+                totalAmount.textContent = '$0.00';
+                uniqueAccounts.textContent = '0';
+                dateRange.textContent = startDate && endDate ? `${formatDate(startDate)} - ${formatDate(endDate)}` : 'Select dates';
+                return;
+            }
+
+            const total = data.reduce((sum, asset) => sum + (asset.TotalAmount || 0), 0);
+            const accounts = new Set(data.map(asset => asset.BillAccountName));
+
+            totalAssets.textContent = data.length.toLocaleString();
+            totalAmount.textContent = `$${formatNumber(total)}`;
+            uniqueAccounts.textContent = accounts.size.toLocaleString();
+            dateRange.textContent = `${formatDate(startDate)} - ${formatDate(endDate)}`;
+
+            summaryCards.style.display = 'grid';
+        }
+
+        function editAsset(billId) {
+            const asset = assetsData.find(a => a.BillId === billId);
+            if (!asset) {
+                showError('Asset not found.');
+                return;
+            }
+            document.getElementById('editBillId').value = asset.BillId;
+            document.getElementById('editDepreciationMonths').value = asset.DepreciationMonths || '';
+            document.getElementById('editDepreciationRate').value = asset.DepreciationRate || '';
+            document.getElementById('editModal').style.display = 'flex';
+        }
+
+        function closeEditModal() {
+            document.getElementById('editModal').style.display = 'none';
+        }
+
+        async function saveAssetChanges() {
+
+            const formData = new FormData(document.getElementById('editForm'));
+            const billId = formData.get('billId');
+            console.log('Retrieved billId =', billId);
+
+            const updatedAsset = {
+                BillId: billId,
+                DepreciationMonths: parseInt(formData.get('depreciationMonths')),
+                DepreciationRate: parseFloat(formData.get('depreciationRate'))
+            };
+            console.log('Constructed updatedAsset =', updatedAsset);
+
+            try {
+                const response = await fetch(`/api/assets/${billId}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(updatedAsset)
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                // Update local data
+                const index = assetsData.findIndex(a => a.BillId === billId);
+                if (index !== -1) {
+                    assetsData[index] = { ...assetsData[index], ...updatedAsset };
+                    displayAssetsData(assetsData);
+                    updateSummary(assetsData, document.getElementById('startDate').value, document.getElementById('endDate').value);
+                }
+
+                closeEditModal();
+                showSuccess('Asset updated successfully!');
+
+            } catch (error) {
+                console.error('Error updating asset:', error);
+                showError('Failed to update asset. Please try again.');
+            }
+        }
+
+        function exportData() {
+            if (!assetsData || assetsData.length === 0) {
+                showError('No assets data available to export. Please load data first.');
+                return;
+            }
+
+            const csv = convertToCSV(assetsData);
+            const startDate = document.getElementById('startDate').value;
+            const endDate = document.getElementById('endDate').value;
+            const filename = `quickbooks_assets_${startDate}_to_${endDate}.csv`;
+
+            downloadCSV(csv, filename);
+            showSuccess(`Assets data exported successfully! Downloaded as ${filename}`);
+        }
+
+        function convertToCSV(data) {
+            const headers = ['Bill ID', 'Transaction Date', 'Total Amount', 'Description', 'Account', 'Account Name'];
+            const rows = data.map(asset => [
+                asset.BillId,
+                asset.TransactionDate,
+                asset.TotalAmount,
+                `"${asset.BillDescription.replace(/"/g, '""')}"`,
+                asset.BillAccount,
+                `"${asset.BillAccountName.replace(/"/g, '""')}"`
+            ]);
+
+            return [headers, ...rows].map(row => row.join(',')).join('\n');
+        }
+
+        function downloadCSV(csv, filename) {
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.setAttribute('hidden', '');
+            a.setAttribute('href', url);
+            a.setAttribute('download', filename);
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+        }
+
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            return date.toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric'
+            });
+        }
+
+        function formatNumber(number) {
+            return new Intl.NumberFormat('en-US', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            }).format(number);
+        }
+
+        function showLoading(show) {
+            document.getElementById('loading').style.display = show ? 'block' : 'none';
+        }
+
+        function showError(message) {
+            const errorDiv = document.getElementById('errorMessage');
+            errorDiv.innerHTML = `<strong>❌ Error:</strong> ${message}`;
+            errorDiv.style.display = 'block';
+            errorDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            setTimeout(() => {
+                errorDiv.style.display = 'none';
+            }, 6000);
+        }
+
+        function showSuccess(message) {
+            const successDiv = document.getElementById('successMessage');
+            successDiv.innerHTML = `<strong>✅ Success:</strong> ${message}`;
+            successDiv.style.display = 'block';
+            successDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            setTimeout(() => {
+                successDiv.style.display = 'none';
+            }, 4000);
+        }
+
+        function hideMessages() {
+            document.getElementById('errorMessage').style.display = 'none';
+            document.getElementById('successMessage').style.display = 'none';
+        }
+
+        // Close modal when clicking outside
+        document.getElementById('editModal').addEventListener('click', function (e) {
+            if (e.target === this) {
+                closeEditModal();
+            }
+        });
+    </script>
+</body>
+
+</html>
