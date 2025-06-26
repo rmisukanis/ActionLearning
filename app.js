@@ -1,6 +1,6 @@
 const dotenv = require('dotenv');
-dotenv.config({ path: 'C:\Users\rmisu\OneDrive\Desktop\api\outh2dev\oauth2_dev\.env' });
-const { createTables, sequelize} = require('./dbconnect/post_database.js');
+dotenv.config({ path: '.\.env' });
+const { createTables, sequelize } = require('./dbconnect/post_database.js');
 
 var path = require('path')
 var config = require('./config.json')
@@ -11,9 +11,9 @@ var app = express()
 app.set('views', path.join(__dirname, 'views'))
 app.set('view engine', 'ejs')
 app.use(express.json());  // This parses incoming JSON requests
-app.use(express.urlencoded({ extended: true })); 
+app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, 'public')))
-app.use(session({secret: 'secret', resave: 'false', saveUninitialized: 'false'}))
+app.use(session({ secret: 'secret', resave: 'false', saveUninitialized: 'false' }))
 
 
 
@@ -36,6 +36,9 @@ app.use('/connected', require('./routes/connected.js'))
 
 // Call an example API over OAuth2
 app.use('/api_call', require('./routes/api_call.js'))
+
+//call asset query
+app.use('/asset', require('./routes/assets.js'));
 
 //call generic query
 app.use('/queryGeneric', require('./routes/queryGeneric.js'));

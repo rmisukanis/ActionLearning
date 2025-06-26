@@ -38,3 +38,6 @@ build/Release
 
 #ignore .env
 .env
+
+node_modules/
+database.sqlite
