@@ -39,6 +39,13 @@ app.use('/api_call', require('./routes/api_call.js'))
 //call asset query
 app.use('/assets', require('./routes/assets.js'));
 
+//uploading current assets (bill account)
+app.use('/apiTesting', require('./routes/bill.js'));
+
+//uploading current assets (bill account)
+app.use('/apiTesting', require('./routes/journalentry.js'));
+
+
 //call generic query
 app.use('/queryGeneric', require('./routes/queryGeneric.js'));
 
