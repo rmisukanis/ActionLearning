@@ -1,12 +1,11 @@
-require('dotenv').config();
-const dotenv = require('dotenv');
-const Asset    = require('./models/Asset');
-dotenv.config();
+require('dotenv').config();           // load env variables once, at the top
+const { Asset } = require('./models');
 
 var path = require('path')
 var config = require('./config.json')
 var express = require('express')
 var session = require('express-session')
+const {sync} = require("./config/db");
 var app = express()
 
 app.set('views', path.join(__dirname, 'views'))
@@ -66,6 +65,14 @@ app.use('/queryAPITesting', require('./routes/queryAPITesting.js'));
 
 
 // Start server on HTTP (will use ngrok for HTTPS forwarding)
-app.listen(3000, function () {
-  console.log('Example app listening on port 3000!')
-})
+// app.listen(3000, function () {
+//   console.log('Example app listening on port 3000!')
+// })
+sync({ alter: true })
+    .then(() => {
+      console.log('✅ Database & tables ready');
+      app.listen(3000, () => console.log('Example app listening on port 3000!'));
+    })
+    .catch((err) => {
+      console.error('❌ Database sync error:', err);
+    });
