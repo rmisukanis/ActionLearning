@@ -1,4 +1,6 @@
+require('dotenv').config();
 const dotenv = require('dotenv');
+const Asset    = require('./models/Asset');
 dotenv.config();
 
 var path = require('path')

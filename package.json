@@ -27,8 +27,11 @@
     "jsonwebtoken": "^7.1.9",
     "node-fetch": "^3.3.2",
     "path": "^0.12.7",
+    "pg": "^8.16.3",
+    "pg-hstore": "^2.3.4",
     "request": "^2.78.0",
-    "rsa-pem-from-mod-exp": "^0.8.4"
+    "rsa-pem-from-mod-exp": "^0.8.4",
+    "sequelize": "^6.37.7"
   },
   "devDependencies": {
     "nodemon": "^3.1.10"
