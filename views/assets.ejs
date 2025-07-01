@@ -151,9 +151,8 @@
                 </div>
 
                 <div class="form-group">
-                    <label for="editDepreciationRate">Depreciation Rate</label>
-                    <input type="number" id="editDepreciationRate" name="depreciationRate" step="0.01" min="0" max="1"
-                        required>
+                    <label for="editSalvageValue">Salvage Value</label>
+                    <input type="number" id="editSalvageValue" name="salvageValue" step="0.01" min="0" max="1" required>
                 </div>
 
                 <div class="modal-actions">
@@ -309,7 +308,7 @@
             }
             document.getElementById('editBillId').value = asset.BillId;
             document.getElementById('editDepreciationMonths').value = asset.DepreciationMonths || '';
-            document.getElementById('editDepreciationRate').value = asset.DepreciationRate || '';
+            document.getElementById('editSalvageValue').value = asset.SalvageValue || '';
             document.getElementById('editModal').style.display = 'flex';
         }
 
@@ -326,7 +325,7 @@
             const updatedAsset = {
                 BillId: billId,
                 DepreciationMonths: parseInt(formData.get('depreciationMonths')),
-                DepreciationRate: parseFloat(formData.get('depreciationRate'))
+                SalvageValue: parseFloat(formData.get('salvageValue'))
             };
             console.log('Constructed updatedAsset =', updatedAsset);
 
