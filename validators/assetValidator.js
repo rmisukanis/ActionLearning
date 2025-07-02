@@ -42,3 +42,8 @@ exports.validateAssetUpdate = [
         .withMessage('Invalid status value'),
 ];
 
+exports.validateMarkPosted = [
+    body('status')
+        .equals('posted')
+        .withMessage("Status must be 'posted'"),
+];

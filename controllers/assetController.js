@@ -131,3 +131,26 @@ exports.approveAsset = async (req, res) => {
     }
 };
 
+/**
+ * @desc Mark an asset as posted
+ * @route PATCH /assets/:id/post
+ */
+exports.markAssetPosted = async (req, res) => {
+    const { id } = req.params;
+
+    try {
+        const asset = await Asset.findByPk(id);
+        if (!asset) {
+            return res.status(404).json({ message: 'Asset not found' });
+        }
+
+        // Update status to 'posted'
+        asset.status = 'posted';
+        await asset.save();
+
+        res.status(200).json({ message: 'Asset marked as posted.', asset });
+    } catch (err) {
+        console.error('Error marking asset as posted:', err);
+        res.status(500).json({ error: 'Server error while updating asset status.' });
+    }
+};
