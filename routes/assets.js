@@ -2,7 +2,8 @@ var express = require('express');
 var router = express.Router();
 
 /** local_call **/
-const sampleAssetsData = require('../data/assets');
+const sampleAssetsTableData = require('../data/assetsTableData');
+const sampleDepriciationTableData = require('../data/depriciationTableData');
 
 router.post('/data', (req, res) => {
     const { startDate, endDate, accountFilter } = req.body;
@@ -10,7 +11,7 @@ router.post('/data', (req, res) => {
     const start = new Date(startDate);
     const end = new Date(endDate);
 
-    const filtered = sampleAssetsData.filter((item) => {
+    const filtered = sampleAssetsTableData.filter((item) => {
         const itemDate = new Date(item.TransactionDate);
         const matchDate = itemDate >= start && itemDate <= end;
 
@@ -26,6 +27,10 @@ router.post('/data', (req, res) => {
 router.get('/', (req, res) => {
 
     res.render('assets');
+});
+
+router.get('/depreciation', (req, res) => {
+    res.json(sampleDepriciationTableData);
 });
 
 module.exports = router;

@@ -84,7 +84,9 @@
                 </div>
 
                 <div class="form-group">
-                    <button type="button" class="btn btn-secondary" onclick="exportData()">📊 To be added...</button>
+                    <button type="button" class="btn btn-secondary" id="getJournal" onclick="loadDepriciationData()">📊
+                        View
+                        Journal</button>
                 </div>
             </form>
         </div>
@@ -131,6 +133,26 @@
                 <p>Please select a different date range or check your QuickBooks data.</p>
             </div>
         </div>
+
+        <!-- Depriciation Table -->
+        <div class="table-section" id="depriciationTableSection" style="display: none;">
+            <div class="table-header">
+                <h3 class="table-title" id="tableTitle">Depriciation Journal</h3>
+            </div>
+
+            <div class="table-container">
+                <table class="depriciation-table" id="depriciationTable">
+                </table>
+            </div>
+
+            <div id="noData" class="no-data" style="display: none;">
+                <div class="no-data-icon">📭</div>
+                <h3>No assets data found</h3>
+                <p>No assets found for the selected period.</p>
+                <p>Please select a different date range or check your QuickBooks data.</p>
+            </div>
+        </div>
+
     </div>
 
     <!-- Edit Modal -->
@@ -167,6 +189,7 @@
             </form>
         </div>
     </div>
+    </div>
 
     <script>
         let assetsData = [];
@@ -195,6 +218,16 @@
         document.getElementById('editForm').addEventListener('submit', function (e) {
             e.preventDefault();
             saveAssetChanges();
+            // Load depriciation table while submitting form
+            loadDepriciationData();
+            document.getElementById('depriciationTableSection').style.display = 'block';
+        });
+
+        // Load journal table
+        document.getElementById('getJournal').addEventListener('click', function (e) {
+            e.preventDefault();
+            loadDepriciationData();
+            document.getElementById('depriciationTableSection').style.display = 'block';
         });
 
         async function loadAssetsData() {
@@ -233,6 +266,39 @@
                 displayAssetsData(assetsData);
                 updateSummary(assetsData, startDate, endDate);
                 showSuccess('Assets data loaded successfully!');
+
+            } catch (error) {
+                console.error('Error loading assets data:', error);
+                showError('Failed to load assets data. Please check your connection and try again.');
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        async function loadDepriciationData() {
+
+            showLoading(true);
+            hideMessages();
+
+            try {
+                const response = await fetch('/assets/depreciation', {// Update the URL to match server endpoint
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const data = await response.json();
+                toggleDepreciationTable(data)
+
+                // assetsData = data || [];
+                // displayAssetsData(assetsData);
+                // updateSummary(assetsData, startDate, endDate);
+                // showSuccess('Assets data loaded successfully!');
 
             } catch (error) {
                 console.error('Error loading assets data:', error);
@@ -366,47 +432,6 @@
             }
         }
 
-        function exportData() {
-            if (!assetsData || assetsData.length === 0) {
-                showError('No assets data available to export. Please load data first.');
-                return;
-            }
-
-            const csv = convertToCSV(assetsData);
-            const startDate = document.getElementById('startDate').value;
-            const endDate = document.getElementById('endDate').value;
-            const filename = `quickbooks_assets_${startDate}_to_${endDate}.csv`;
-
-            downloadCSV(csv, filename);
-            showSuccess(`Assets data exported successfully! Downloaded as ${filename}`);
-        }
-
-        function convertToCSV(data) {
-            const headers = ['Bill ID', 'Transaction Date', 'Total Amount', 'Description', 'Account', 'Account Name'];
-            const rows = data.map(asset => [
-                asset.BillId,
-                asset.TransactionDate,
-                asset.TotalAmount,
-                `"${asset.BillDescription.replace(/"/g, '""')}"`,
-                asset.BillAccount,
-                `"${asset.BillAccountName.replace(/"/g, '""')}"`
-            ]);
-
-            return [headers, ...rows].map(row => row.join(',')).join('\n');
-        }
-
-        function downloadCSV(csv, filename) {
-            const blob = new Blob([csv], { type: 'text/csv' });
-            const url = window.URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.setAttribute('hidden', '');
-            a.setAttribute('href', url);
-            a.setAttribute('download', filename);
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-        }
-
         function formatDate(dateString) {
             const date = new Date(dateString);
             return date.toLocaleDateString('en-US', {
@@ -458,6 +483,54 @@
                 closeEditModal();
             }
         });
+
+        function toggleDepreciationTable(data) {
+            // depriciation table
+            const table = document.getElementById("depriciationTable");
+            table.innerHTML = "";
+
+            const today = new Date();
+            const currentMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+
+            // months
+            const months = [];
+            for (let i = -6; i <= 6; i++) {
+                const d = new Date(currentMonth.getFullYear(), currentMonth.getMonth() + i, 1);
+                const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+                const label = d.toLocaleString("en-US", { month: "short" }).toUpperCase();
+                months.push({ key, label, isCurrent: i === 0 });
+            }
+
+            const theadRow = document.createElement("tr");
+            theadRow.appendChild(document.createElement("th"));
+            months.forEach(m => {
+                const th = document.createElement("th");
+                th.textContent = m.label;
+                if (m.isCurrent) th.classList.add("current-month");
+                theadRow.appendChild(th);
+            });
+            table.appendChild(theadRow);
+
+            // assets depriciation rows
+            data.forEach(assetEntry => {
+                const tr = document.createElement("tr");
+                const tdAsset = document.createElement("td");
+                tdAsset.textContent = assetEntry.asset;
+                tdAsset.classList.add("asset-name");
+                tr.appendChild(tdAsset);
+
+                months.forEach(m => {
+                    const td = document.createElement("td");
+                    const value = assetEntry.depreciation[m.key] ?? "";
+                    td.textContent = value;
+                    if (m.isCurrent) td.classList.add("current-month");
+                    tr.appendChild(td);
+                });
+
+                table.appendChild(tr);
+            });
+        }
+
     </script>
 </body>
 

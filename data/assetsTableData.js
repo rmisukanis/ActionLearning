@@ -1,5 +1,5 @@
 // src/data/assets.js
-const sampleAssetsData = [
+const sampleAssetsTableData = [
     {
         BillId: '445',
         TransactionDate: '2025-06-02',
@@ -26,4 +26,4 @@ const sampleAssetsData = [
     }
 ];
 
-module.exports = sampleAssetsData;  
+module.exports = sampleAssetsTableData;  

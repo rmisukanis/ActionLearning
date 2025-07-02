@@ -230,6 +230,7 @@ body {
   border-radius: 12px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
   border: 1px solid #e3e8ef;
+  margin-bottom: 32px;
   overflow: hidden;
 }
 
@@ -251,12 +252,14 @@ body {
   overflow-x: auto;
 }
 
-.assets-table {
+.assets-table,
+.depriciation-table {
   width: 100%;
   border-collapse: collapse;
 }
 
-.assets-table th {
+.assets-table th,
+.depriciation-table th {
   background: #f8f9fb;
   padding: 16px 20px;
   text-align: left;
@@ -268,13 +271,15 @@ body {
   border-bottom: 2px solid #e3e8ef;
 }
 
-.assets-table td {
+.assets-table td,
+.depriciation-table td {
   padding: 16px 20px;
   border-bottom: 1px solid #f1f3f4;
   font-size: 14px;
 }
 
-.assets-table tr:hover {
+.assets-table,
+.depriciation-table tr:hover {
   background-color: #f8fffe;
 }
 
