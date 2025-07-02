@@ -8,7 +8,6 @@ const { validationResult } = require('express-validator');
  * @route POST /assets
  */
 exports.importAsset = async (req, res) => {
-    // Validate request
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
         return res.status(400).json({ errors: errors.array() });
@@ -43,7 +42,8 @@ exports.importAsset = async (req, res) => {
             accountName,
             assetType,
             depreciationMethod,
-            salvageValue
+            salvageValue,
+            status: 'pending'  // imported -> pending for review
         });
 
         res.status(201).json({ message: 'Asset imported successfully.', asset: newAsset });
@@ -52,3 +52,82 @@ exports.importAsset = async (req, res) => {
         res.status(500).json({ error: 'Server error while importing asset.' });
     }
 };
+
+/**
+ * @desc Get an asset by ID for review
+ * @route GET /assets/:id
+ */
+exports.getAsset = async (req, res) => {
+    try {
+        const asset = await Asset.findByPk(req.params.id);
+        if (!asset) {
+            return res.status(404).json({ message: 'Asset not found.' });
+        }
+        res.json(asset);
+    } catch (err) {
+        console.error('Error fetching asset:', err);
+        res.status(500).json({ error: 'Server error fetching asset.' });
+    }
+};
+
+/**
+ * @desc Update asset details (adjustments)
+ * @route PUT /assets/:id
+ */
+exports.updateAsset = async (req, res) => {
+    try {
+        const asset = await Asset.findByPk(req.params.id);
+        if (!asset) {
+            return res.status(404).json({ message: 'Asset not found.' });
+        }
+
+        const {
+            assetType,
+            depreciationMethod,
+            salvageValue,
+            description,
+            totalAmount,
+            status // allow status update here if needed
+        } = req.body;
+
+        // Update fields as necessary
+        asset.assetType = assetType ?? asset.assetType;
+        asset.depreciationMethod = depreciationMethod ?? asset.depreciationMethod;
+        asset.salvageValue = salvageValue ?? asset.salvageValue;
+        asset.description = description ?? asset.description;
+        asset.totalAmount = totalAmount ?? asset.totalAmount;
+        if (status) asset.status = status;
+
+        await asset.save();
+        res.json({ message: 'Asset updated successfully.', asset });
+    } catch (err) {
+        console.error('Error updating asset:', err);
+        res.status(500).json({ error: 'Server error updating asset.' });
+    }
+};
+
+/**
+ * @desc Approve/post asset (mark as posted)
+ * @route POST /assets/:id/approve
+ */
+exports.approveAsset = async (req, res) => {
+    try {
+        const asset = await Asset.findByPk(req.params.id);
+        if (!asset) {
+            return res.status(404).json({ message: 'Asset not found.' });
+        }
+
+        if (asset.status === 'posted') {
+            return res.status(400).json({ message: 'Asset already posted.' });
+        }
+
+        asset.status = 'posted';
+        await asset.save();
+
+        res.json({ message: 'Asset approved and posted successfully.', asset });
+    } catch (err) {
+        console.error('Error approving asset:', err);
+        res.status(500).json({ error: 'Server error approving asset.' });
+    }
+};
+
