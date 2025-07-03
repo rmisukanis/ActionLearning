@@ -139,6 +139,14 @@
             <div class="table-header">
                 <h3 class="table-title" id="tableTitle">Depriciation Journal</h3>
             </div>
+            <div class="journal-entry">
+                <label>Depreciation Expense of the current month:</label>
+                <input type="text" class="journal-entry-input" id="depreciationExpense"
+                    placeholder="Depreciation Expense" disabled><br><br>
+                <label>Accumulated Depriciation:</label>
+                <input type="text" class="journal-entry-input" id="accumulatedDepriciation"
+                    placeholder="Accumulated Depriciation" disabled>
+            </div>
 
             <div class="table-container">
                 <table class="depriciation-table" id="depriciationTable">
@@ -242,38 +250,69 @@
 
             showLoading(true);
             hideMessages();
+            const sqlQuery = `SELECT * FROM Bill WHERE TxnDate >= '${startDate}' AND TxnDate <= '${endDate}'`;
+            console.log('sqlQuery:', sqlQuery);
 
+            const url = `/apiTesting/queryBill?query=${encodeURIComponent(sqlQuery)}`;
             try {
-                const response = await fetch('/assets/data', {// Update the URL to match server endpoint
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        startDate: startDate,
-                        endDate: endDate,
-                        accountFilter: accountFilter
+                fetch(url)
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error(`HTTP error! Status: ${response.status}`);
+                        }
+                        return response.json();
                     })
-                });
+                    .then(data => {
+                        assetsData = data.billSummary || [];
 
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-
-                const data = await response.json();
-                assetsData = data || [];
-
-                displayAssetsData(assetsData);
-                updateSummary(assetsData, startDate, endDate);
-                showSuccess('Assets data loaded successfully!');
-
+                        displayAssetsData(assetsData);
+                        updateSummary(assetsData, startDate, endDate);
+                        showSuccess('Assets data loaded successfully!');
+                    })
+                    .catch(error => {
+                        console.error('Error loading assets data:', error);
+                        resultDiv.innerText = 'Failed to load assets data. Please check your connection and try again.';
+                    });
             } catch (error) {
-                console.error('Error loading assets data:', error);
-                showError('Failed to load assets data. Please check your connection and try again.');
+                console.log(error)
             } finally {
                 showLoading(false);
             }
+
+
+
+            // try {
+            //     const response = await fetch('/assets/queryBill', {// Update the URL to match server endpoint
+            //         method: 'POST',
+            //         headers: {
+            //             'Content-Type': 'application/json',
+            //         },
+            //         body: JSON.stringify({
+            //             startDate: startDate,
+            //             endDate: endDate,
+            //             accountFilter: accountFilter
+            //         })
+            //     });
+
+            //     if (!response.ok) {
+            //         throw new Error(`HTTP error! status: ${response.status}`);
+            //     }
+
+            //     const data = await response.json();
+            //     assetsData = data || [];
+
+            //     displayAssetsData(assetsData);
+            //     updateSummary(assetsData, startDate, endDate);
+            //     showSuccess('Assets data loaded successfully!');
+
+            // } catch (error) {
+            //     console.error('Error loading assets data:', error);
+            //     showError('Failed to load assets data. Please check your connection and try again.');
+            // } finally {
+            //     showLoading(false);
+            // }
         }
+
 
         async function loadDepriciationData() {
 

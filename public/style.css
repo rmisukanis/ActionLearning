@@ -148,7 +148,8 @@ body {
   flex-direction: column;
 }
 
-.form-group label {
+.form-group label,
+.journal-entry label {
   font-size: 14px;
   font-weight: 600;
   color: #2c3e50;
@@ -156,7 +157,8 @@ body {
 }
 
 .form-group input,
-.form-group select {
+.form-group select,
+.journal-entry input {
   padding: 12px 16px;
   border: 2px solid #e3e8ef;
   border-radius: 8px;
@@ -166,14 +168,16 @@ body {
 }
 
 .form-group input:focus,
-.form-group select:focus {
+.form-group select:focus,
+.journal-entry input:focus {
   outline: none;
   border-color: #0077c0;
   box-shadow: 0 0 0 3px rgba(0, 119, 192, 0.1);
 }
 
 .form-group input:hover,
-.form-group select:hover {
+.form-group select:hover,
+.journal-entry input:hover {
   border-color: #bdd5ea;
 }
 
@@ -276,6 +280,10 @@ body {
   padding: 16px 20px;
   border-bottom: 1px solid #f1f3f4;
   font-size: 14px;
+}
+
+.journal-entry {
+  margin: 20px 50px;
 }
 
 .assets-table,

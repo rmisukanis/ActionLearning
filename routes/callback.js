@@ -6,7 +6,7 @@ var router = express.Router()
 /** /callback **/
 router.get('/', function (req, res) {
   // Verify anti-forgery
-  if(!tools.verifyAntiForgery(req.session, req.query.state)) {
+  if (!tools.verifyAntiForgery(req.session, req.query.state)) {
     return res.send('Error - invalid anti-forgery CSRF response!')
   }
 
@@ -18,25 +18,25 @@ router.get('/', function (req, res) {
     tools.saveToken(req.session, token)
     req.session.realmId = req.query.realmId
 
-    var errorFn = function(e) {
+    var errorFn = function (e) {
       console.log('Invalid JWT token!')
       console.log(e)
       res.redirect('/')
     }
 
-    if(token.data.id_token) {
+    if (token.data.id_token) {
       try {
         // We should decode and validate the ID token
-        jwt.validate(token.data.id_token, function() {
+        jwt.validate(token.data.id_token, function () {
           // Callback function - redirect to /connected
-          res.redirect('connected')
+          res.redirect('assets')
         }, errorFn)
       } catch (e) {
         errorFn(e)
       }
     } else {
       // Redirect to /connected
-      res.redirect('connected')
+      res.redirect('assets')
     }
   }, function (err) {
     console.log(err)
