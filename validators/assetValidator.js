@@ -40,6 +40,18 @@ exports.validateAssetUpdate = [
         .optional()
         .isIn(['imported', 'pending', 'reviewed', 'adjustment', 'posted'])
         .withMessage('Invalid status value'),
+
+    body('depreciationMethod')
+        .optional()
+        .isIn(['Straight Line', 'Declining Balance'])
+        .withMessage('Depreciation method must be either "Straight Line" or "Declining Balance"'),
+
+    body('usefulLifeYears')
+        .optional()
+        .isInt({ min: 1 })
+        .withMessage('Useful life years must be a positive integer'),
+
+
 ];
 
 exports.validateMarkPosted = [

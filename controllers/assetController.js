@@ -3,6 +3,39 @@
 const { Asset } = require('../models');
 const { validationResult } = require('express-validator');
 
+function calculateDepreciation({ depreciationMethod, totalAmount, salvageValue, usefulLifeYears }) {
+    // salvageValue defaults to 0 if not provided
+    salvageValue = salvageValue ?? 0;
+
+    // Useful life in years - you can adjust this if you store it differently
+    usefulLifeYears = usefulLifeYears ?? 5;
+
+    if (depreciationMethod === 'Straight Line') {
+        // Annual Depreciation = (Cost - Salvage) / Useful Life
+        const annualDep = (totalAmount - salvageValue) / usefulLifeYears;
+        return {
+            annualDepreciation: annualDep,
+            monthlyDepreciation: annualDep / 12,
+        };
+    } else if (depreciationMethod === 'Declining Balance') {
+        // Double declining balance rate
+        const rate = 2 / usefulLifeYears;
+        // For simplicity, return first year depreciation as totalAmount * rate
+        // Real DB logic would track accumulated depreciation over time.
+        return {
+            annualDepreciation: totalAmount * rate,
+            monthlyDepreciation: (totalAmount * rate) / 12,
+        };
+    }
+
+    // Default fallback, no depreciation
+    return {
+        annualDepreciation: 0,
+        monthlyDepreciation: 0,
+    };
+}
+
+
 /**
  * @desc Import a new asset (from QuickBooks bill)
  * @route POST /assets
@@ -23,7 +56,8 @@ exports.importAsset = async (req, res) => {
             accountName,
             assetType,
             depreciationMethod,
-            salvageValue
+            salvageValue,
+            usefulLifeYears  // optionally accept useful life from front-end
         } = req.body;
 
         // Prevent duplicate imports
@@ -32,7 +66,15 @@ exports.importAsset = async (req, res) => {
             return res.status(409).json({ message: 'Asset already exists.' });
         }
 
-        // Create asset
+        // Calculate depreciation
+        const { annualDepreciation, monthlyDepreciation } = calculateDepreciation({
+            depreciationMethod,
+            totalAmount,
+            salvageValue,
+            usefulLifeYears,
+        });
+
+        // Create asset with depreciation info included
         const newAsset = await Asset.create({
             quickBooksBillId,
             transactionDate,
@@ -43,6 +85,8 @@ exports.importAsset = async (req, res) => {
             assetType,
             depreciationMethod,
             salvageValue,
+            annualDepreciation,
+            monthlyDepreciation,
             status: 'pending'  // imported -> pending for review
         });
 
@@ -74,6 +118,8 @@ exports.getAsset = async (req, res) => {
  * @desc Update asset details (adjustments)
  * @route PUT /assets/:id
  */
+const { calculateDepreciation } = require('../utils/depreciation');
+
 exports.updateAsset = async (req, res) => {
     try {
         const asset = await Asset.findByPk(req.params.id);
@@ -87,7 +133,8 @@ exports.updateAsset = async (req, res) => {
             salvageValue,
             description,
             totalAmount,
-            status // allow status update here if needed
+            status,
+            usefulLifeYears // new optional field
         } = req.body;
 
         // Update fields as necessary
@@ -98,13 +145,28 @@ exports.updateAsset = async (req, res) => {
         asset.totalAmount = totalAmount ?? asset.totalAmount;
         if (status) asset.status = status;
 
+        // Recalculate depreciation if any relevant field changed
+        if (depreciationMethod || totalAmount || salvageValue || usefulLifeYears) {
+            const { annualDepreciation, monthlyDepreciation } = calculateDepreciation({
+                depreciationMethod: asset.depreciationMethod,
+                totalAmount: asset.totalAmount,
+                salvageValue: asset.salvageValue,
+                usefulLifeYears
+            });
+
+            asset.annualDepreciation = annualDepreciation;
+            asset.monthlyDepreciation = monthlyDepreciation;
+        }
+
         await asset.save();
+
         res.json({ message: 'Asset updated successfully.', asset });
     } catch (err) {
         console.error('Error updating asset:', err);
         res.status(500).json({ error: 'Server error updating asset.' });
     }
 };
+
 
 /**
  * @desc Approve/post asset (mark as posted)
@@ -152,5 +214,35 @@ exports.markAssetPosted = async (req, res) => {
     } catch (err) {
         console.error('Error marking asset as posted:', err);
         res.status(500).json({ error: 'Server error while updating asset status.' });
+    }
+};
+
+/**
+ * @desc Calculate month-end depreciation for all active assets
+ * @route GET /assets/depreciation/month-end
+ */
+exports.calculateMonthEndDepreciation = async (req, res) => {
+    try {
+        // Fetch all posted assets (or your status criteria)
+        const assets = await Asset.findAll({ where: { status: 'posted' } });
+
+        // Sum monthly depreciation for all assets
+        let totalMonthlyDepreciation = 0;
+        const perAssetDepreciation = assets.map(asset => {
+            totalMonthlyDepreciation += asset.monthlyDepreciation || 0;
+            return {
+                id: asset.id,
+                description: asset.description,
+                monthlyDepreciation: asset.monthlyDepreciation || 0,
+            };
+        });
+
+        res.json({
+            totalMonthlyDepreciation,
+            perAssetDepreciation,
+        });
+    } catch (err) {
+        console.error('Error calculating month-end depreciation:', err);
+        res.status(500).json({ error: 'Server error calculating month-end depreciation.' });
     }
 };
