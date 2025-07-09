@@ -5,7 +5,8 @@ var path = require('path')
 var config = require('./config.json')
 var express = require('express')
 var session = require('express-session')
-const { sync } = require("./config/db");
+// const { sync } = require("./config/db");
+const sequelize = require("./config/db");
 var app = express()
 
 app.set('views', path.join(__dirname, 'views'))
@@ -68,11 +69,20 @@ app.use('/queryAPITesting', require('./routes/queryAPITesting.js'));
 // app.listen(3000, function () {
 //   console.log('Example app listening on port 3000!')
 // })
-sync({ alter: true })
-  .then(() => {
-    console.log('✅ Database & tables ready');
-    app.listen(3000, () => console.log('Example app listening on port 3000!'));
-  })
-  .catch((err) => {
-    console.error('❌ Database sync error:', err);
-  });
+// sync({ alter: true })
+//   .then(() => {
+//     console.log('✅ Database & tables ready');
+//     app.listen(3000, () => console.log('Example app listening on port 3000!'));
+//   })
+//   .catch((err) => {
+//     console.error('❌ Database sync error:', err);
+//   });
+
+sequelize.sync({ alter: true })
+    .then(() => {
+        console.log('✅ Database & tables ready');
+        app.listen(3000, () => console.log('Example app listening on port 3000!'));
+    })
+    .catch((err) => {
+        console.error('❌ Database sync error:', err);
+    });
