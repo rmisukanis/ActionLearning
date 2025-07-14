@@ -5,7 +5,7 @@ var path = require('path')
 var config = require('./config.json')
 var express = require('express')
 var session = require('express-session')
-const { sync } = require("./config/db");
+const sequelize = require("./config/db");
 var app = express()
 
 app.set('views', path.join(__dirname, 'views'))
@@ -54,25 +54,20 @@ app.use('/queryGeneric', require('./routes/queryGeneric.js'));
 //call query Invoice
 app.use('/queryInvoice', require('./routes/queryInvoice.js'));
 
-
 //call query Deposit
 app.use('/queryDeposit', require('./routes/queryDeposit.js'));
 
-
-//API Testing
 app.use('/queryAPITesting', require('./routes/queryAPITesting.js'));
 
+//sequelize.sync({ alter: true })
+//.then(() => {
+//console.log('✅ Database & tables ready');
+//app.listen(3000, () => console.log('Example app listening on port 3000!'));
+//})
+//.catch((err) => {
+//console.error('❌ Database sync error:', err);
+//});
 
-
-// Start server on HTTP (will use ngrok for HTTPS forwarding)
-app.listen(3000, function () {
-  console.log('Example app listening on port 3000!')
-})
-// sync({ alter: true })
-//   .then(() => {
-//     console.log('✅ Database & tables ready');
-//     app.listen(3000, () => console.log('Example app listening on port 3000!'));
-//   })
-//   .catch((err) => {
-//     console.error('❌ Database sync error:', err);
-//   });
+app.listen(3000, () => {
+  console.log('🚀 App running at http://localhost:3000');
+});
