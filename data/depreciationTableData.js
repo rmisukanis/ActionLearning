@@ -1,4 +1,4 @@
-const sampleDepriciationTableData = [
+const sampleDepreciationTableData = [
     {
         asset: "Asset A",
         depreciation: {
@@ -25,4 +25,4 @@ const sampleDepriciationTableData = [
         }
     }
 ];
-module.exports = sampleDepriciationTableData;  
+module.exports = sampleDepreciationTableData;  

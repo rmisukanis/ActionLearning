@@ -257,13 +257,13 @@ body {
 }
 
 .assets-table,
-.depriciation-table {
+.depreciation-table {
   width: 100%;
   border-collapse: collapse;
 }
 
 .assets-table th,
-.depriciation-table th {
+.depreciation-table th {
   background: #f8f9fb;
   padding: 16px 20px;
   text-align: left;
@@ -276,7 +276,7 @@ body {
 }
 
 .assets-table td,
-.depriciation-table td {
+.depreciation-table td {
   padding: 16px 20px;
   border-bottom: 1px solid #f1f3f4;
   font-size: 14px;
@@ -287,7 +287,7 @@ body {
 }
 
 .assets-table,
-.depriciation-table tr:hover {
+.depreciation-table tr:hover {
   background-color: #f8fffe;
 }
 

@@ -1,50 +1,51 @@
 <!-- views/bill.ejs -->
 <!DOCTYPE html>
 <html>
+
 <head>
   <title>Test Bill Page</title>
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
   <script>
     function billQuery() {
       $("#result").html('Loading...');  // Show a loading message
-        let startDate = $("#start-date").val(); // Get the SQL query from the input field
-        let endDate = $("#end-date").val(); 
-            if (!startDate || !endDate) {
-              $("#result").html("Please select both a start and end date.");
-              return;
-            }
+      let startDate = $("#start-date").val(); // Get the SQL query from the input field
+      let endDate = $("#end-date").val();
+      if (!startDate || !endDate) {
+        $("#result").html("Please select both a start and end date.");
+        return;
+      }
       const sqlQuery = `SELECT * FROM Bill WHERE TxnDate >= '${startDate}' AND TxnDate <= '${endDate}'`;
       console.log('sqlQuery: ', sqlQuery)
 
-      $.get("/apiTesting/queryBill", { query: sqlQuery }, function(data) {
-        $("#result").html(""); 
+      $.get("/bill/queryBill", { query: sqlQuery }, function (data) {
+        $("#result").html("");
         if (data.error) {
-          $("#result").html('Error: ' + data.error); 
+          $("#result").html('Error: ' + data.error);
           return;
         }
         $("#result").html(JSON.stringify(data, null, 2))
       });
     }
-      function postJE() {
-      $("#result").html('Loading...'); 
-        let journalDate = $("#journal-date").val();
-        let amount = $("#amount").val(); 
-            if (!journalDate || !amount) {
-              $("#result").html("Please select both amount and date.");
-              return;
-            }
-        
-          const input = {
-            TxnDate: journalDate,
-            Amount: parseFloat(amount)
-          };
+    function postJE() {
+      $("#result").html('Loading...');
+      let journalDate = $("#journal-date").val();
+      let amount = $("#amount").val();
+      if (!journalDate || !amount) {
+        $("#result").html("Please select both amount and date.");
+        return;
+      }
 
-          console.log(input);  // for debugging
+      const input = {
+        TxnDate: journalDate,
+        Amount: parseFloat(amount)
+      };
 
-      $.post("/apiTesting/postJournalEntry", { journalentry: input }, function(data) {
-        $("#result").html(""); 
+      console.log(input);  // for debugging
+
+      $.post("/bill/postJournalEntry", { journalentry: input }, function (data) {
+        $("#result").html("");
         if (data.error) {
-          $("#result").html('Error: ' + data.error); 
+          $("#result").html('Error: ' + data.error);
           return;
         }
         $("#result").html(JSON.stringify(data, null, 2))
@@ -52,33 +53,35 @@
     }
   </script>
 </head>
+
 <body>
   <h1>API Testing</h1>
   <hr style="border: none; height: 4px; background-color: black; margin: 20px 0;">
   <h2>Import Asset Testing</h2>
 
-    <div id="billQueryBox">
+  <div id="billQueryBox">
     <p>Input Start and End Date For Assets</p>
-      <label for="start-date">Start Date</label>
-      <input type="date" id="start-date" name="start-date"><br>
-      <label for="end-date">End Date</label>
-      <input type="date" id="end-date" name="end-date">
-      <br><br><button onclick="billQuery()">Fetch Assets from Time Period</button>
+    <label for="start-date">Start Date</label>
+    <input type="date" id="start-date" name="start-date"><br>
+    <label for="end-date">End Date</label>
+    <input type="date" id="end-date" name="end-date">
+    <br><br><button onclick="billQuery()">Fetch Assets from Time Period</button>
   </div>
   <hr style="border: none; height: 4px; background-color: black; margin: 20px 0;">
   <h2>Export Journal Entry Testing</h2>
 
   <div id="journalEntryBox">
     <p>Input Date and Amount for Journal Entry</p>
-      <label for="journal-date">Journal Entry Date</label>
-      <input type="date" id="journal-date" name="journal-date"><br>
-      <label for="amount">Enter amount:</label>
-      <input type="number" id="amount" name="amount">
-      <br><br><button onclick="postJE()">Post Journal Entry</button>
+    <label for="journal-date">Journal Entry Date</label>
+    <input type="date" id="journal-date" name="journal-date"><br>
+    <label for="amount">Enter amount:</label>
+    <input type="number" id="amount" name="amount">
+    <br><br><button onclick="postJE()">Post Journal Entry</button>
   </div>
 
-  
+
 
 
 </body>
+
 </html>

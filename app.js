@@ -37,14 +37,14 @@ app.use('/connected', require('./routes/connected.js'))
 // Call an example API over OAuth2
 app.use('/api_call', require('./routes/api_call.js'))
 
-//call asset query
+//call asset query and post data to backend
 app.use('/assets', require('./routes/assets.js'));
 
 //uploading current assets (bill account)
-app.use('/apiTesting', require('./routes/bill.js'));
+app.use('/bill', require('./routes/bill.js'));
 
 //uploading current assets (bill account)
-app.use('/apiTesting', require('./routes/journalentry.js'));
+app.use('/bill', require('./routes/journalentry.js'));
 
 
 //call generic query
@@ -65,14 +65,14 @@ app.use('/queryAPITesting', require('./routes/queryAPITesting.js'));
 
 
 // Start server on HTTP (will use ngrok for HTTPS forwarding)
-// app.listen(3000, function () {
-//   console.log('Example app listening on port 3000!')
-// })
-sync({ alter: true })
-  .then(() => {
-    console.log('✅ Database & tables ready');
-    app.listen(3000, () => console.log('Example app listening on port 3000!'));
-  })
-  .catch((err) => {
-    console.error('❌ Database sync error:', err);
-  });
+app.listen(3000, function () {
+  console.log('Example app listening on port 3000!')
+})
+// sync({ alter: true })
+//   .then(() => {
+//     console.log('✅ Database & tables ready');
+//     app.listen(3000, () => console.log('Example app listening on port 3000!'));
+//   })
+//   .catch((err) => {
+//     console.error('❌ Database sync error:', err);
+//   });

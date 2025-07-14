@@ -84,7 +84,7 @@
                 </div>
 
                 <div class="form-group">
-                    <button type="button" class="btn btn-secondary" id="getJournal" onclick="loadDepriciationData()">📊
+                    <button type="button" class="btn btn-secondary" id="getJournal" onclick="loadDepreciationData()">📊
                         View
                         Journal</button>
                 </div>
@@ -134,22 +134,22 @@
             </div>
         </div>
 
-        <!-- Depriciation Table -->
-        <div class="table-section" id="depriciationTableSection" style="display: none;">
+        <!-- Depreciation Table -->
+        <div class="table-section" id="depreciationTableSection" style="display: none;">
             <div class="table-header">
-                <h3 class="table-title" id="tableTitle">Depriciation Journal</h3>
+                <h3 class="table-title" id="tableTitle">Depreciation Journal</h3>
             </div>
             <div class="journal-entry">
                 <label>Depreciation Expense of the current month:</label>
                 <input type="text" class="journal-entry-input" id="depreciationExpense"
                     placeholder="Depreciation Expense" disabled><br><br>
-                <label>Accumulated Depriciation:</label>
-                <input type="text" class="journal-entry-input" id="accumulatedDepriciation"
-                    placeholder="Accumulated Depriciation" disabled>
+                <label>Accumulated Depreciation:</label>
+                <input type="text" class="journal-entry-input" id="accumulatedDepreciation"
+                    placeholder="Accumulated Depreciation" disabled>
             </div>
 
             <div class="table-container">
-                <table class="depriciation-table" id="depriciationTable">
+                <table class="depreciation-table" id="depreciationTable">
                 </table>
             </div>
 
@@ -180,7 +180,7 @@
                 </div>
 
                 <div class="form-group">
-                    <label for="editDepreciationMonths">Depriciation Period</label>
+                    <label for="editDepreciationMonths">Depreciation Period</label>
                     <input type="number" id="editDepreciationMonths" name="depreciationMonths"
                         placeholder="Please indicate how many months the asset will be depreciated over" min="1">
                 </div>
@@ -226,16 +226,16 @@
         document.getElementById('editForm').addEventListener('submit', function (e) {
             e.preventDefault();
             saveAssetChanges();
-            // Load depriciation table while submitting form
-            loadDepriciationData();
-            document.getElementById('depriciationTableSection').style.display = 'block';
+            // Load depreciation table while submitting form
+            loadDepreciationData();
+            document.getElementById('depreciationTableSection').style.display = 'block';
         });
 
         // Load journal table
         document.getElementById('getJournal').addEventListener('click', function (e) {
             e.preventDefault();
-            loadDepriciationData();
-            document.getElementById('depriciationTableSection').style.display = 'block';
+            loadDepreciationData();
+            document.getElementById('depreciationTableSection').style.display = 'block';
         });
 
         async function loadAssetsData() {
@@ -253,7 +253,7 @@
             const sqlQuery = `SELECT * FROM Bill WHERE TxnDate >= '${startDate}' AND TxnDate <= '${endDate}'`;
             console.log('sqlQuery:', sqlQuery);
 
-            const url = `/apiTesting/queryBill?query=${encodeURIComponent(sqlQuery)}`;
+            const url = `/bill/queryBill?query=${encodeURIComponent(sqlQuery)}`;
             try {
                 fetch(url)
                     .then(response => {
@@ -314,7 +314,7 @@
         }
 
 
-        async function loadDepriciationData() {
+        async function loadDepreciationData() {
 
             showLoading(true);
             hideMessages();
@@ -442,7 +442,7 @@
             console.log('Constructed updatedAsset =', updatedAsset);
 
             try {
-                const response = await fetch(`/api/assets/${billId}`, {
+                const response = await fetch(`/assets/${billId}`, {
                     method: 'PUT',
                     headers: {
                         'Content-Type': 'application/json',
@@ -523,9 +523,36 @@
             }
         });
 
+        async function fetchDepreciationData() {
+            try {
+                const response = await fetch('/asset/depreciationEntryJournal');
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                const data = await response.json();
+
+                // supposed data format：
+                // {
+                //   "depreciationExpense": 500,
+                //   "accumulatedDepreciation": 10000
+                // }
+
+                document.getElementById('depreciationExpense').value = data.depreciationExpense ?? 'N/A';
+                document.getElementById('accumulatedDepreciation').value = data.accumulatedDepreciation ?? 'N/A';
+            } catch (error) {
+                console.error('Error fetching depreciation data:', error);
+                // default values
+                document.getElementById('depreciationExpense').value = 'Loading...';
+                document.getElementById('accumulatedDepreciation').value = 'Loading...';
+            }
+        }
+
+        // load data while page loads
+        window.addEventListener('DOMContentLoaded', fetchDepreciationData);
+
         function toggleDepreciationTable(data) {
-            // depriciation table
-            const table = document.getElementById("depriciationTable");
+            // depreciation table
+            const table = document.getElementById("depreciationTable");
             table.innerHTML = "";
 
             const today = new Date();
@@ -550,7 +577,7 @@
             });
             table.appendChild(theadRow);
 
-            // assets depriciation rows
+            // assets depreciation rows
             data.forEach(assetEntry => {
                 const tr = document.createElement("tr");
                 const tdAsset = document.createElement("td");
