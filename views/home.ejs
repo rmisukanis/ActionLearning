@@ -1,57 +1,58 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Welcome to RAXY Reconciliation Automation platform</title>
-    <link rel="stylesheet" type="text/css" href="home.css">
+  <link rel="stylesheet" type="text/css" href="home.css">
 </head>
 
 <body>
   <div class="container">
     <!-- header -->
     <header class="text-center mb-8">
-     
+
       <h1>Welcome to RAXY Reconciliation Automation platform</h1>
-      
+
     </header>
 
     <!-- play in turn -->
-     <div class="carousel">
-        <div class="carousel-slides" id="carouselSlides">
-          <div class="carousel-slide">
-            <div class="text-center p-4">
-              <h2 class="text-2xl font-bold mb-2">Automate Financial Reconciliation</h2>
-              <p>Simplify your accounting processes with RAXY</p>
-            </div>
-          </div>
-          <div class="carousel-slide">
-            <div class="text-center p-4">
-              <h2 class="text-2xl font-bold mb-2">Connect Multiple Accounts</h2>
-              <p>Integrate with popular financial platforms</p>
-            </div>
-          </div>
-          <div class="carousel-slide">
-            <div class="text-center p-4">
-              <h2 class="text-2xl font-bold mb-2">Real-time Data Analysis</h2>
-              <p>Get insights and identify discrepancies instantly</p>
-            </div>
+    <div class="carousel">
+      <div class="carousel-slides" id="carouselSlides">
+        <div class="carousel-slide">
+          <div class="text-center p-4">
+            <h2 class="text-2xl font-bold mb-2">Automate Financial Reconciliation</h2>
+            <p>Simplify your accounting processes with RAXY</p>
           </div>
         </div>
-        
-        <div class="carousel-control prev" onclick="prevSlide()">
-          <span>❮</span>
+        <div class="carousel-slide">
+          <div class="text-center p-4">
+            <h2 class="text-2xl font-bold mb-2">Connect Multiple Accounts</h2>
+            <p>Integrate with popular financial platforms</p>
+          </div>
         </div>
-        <div class="carousel-control next" onclick="nextSlide()">
-          <span>❯</span>
-        </div>
-        
-        <div class="carousel-dots" id="carouselDots">
-          <div class="carousel-dot active" onclick="goToSlide(0)"></div>
-          <div class="carousel-dot" onclick="goToSlide(1)"></div>
-          <div class="carousel-dot" onclick="goToSlide(2)"></div>
+        <div class="carousel-slide">
+          <div class="text-center p-4">
+            <h2 class="text-2xl font-bold mb-2">Real-time Data Analysis</h2>
+            <p>Get insights and identify discrepancies instantly</p>
+          </div>
         </div>
       </div>
+
+      <div class="carousel-control prev" onclick="prevSlide()">
+        <span>❮</span>
+      </div>
+      <div class="carousel-control next" onclick="nextSlide()">
+        <span>❯</span>
+      </div>
+
+      <div class="carousel-dots" id="carouselDots">
+        <div class="carousel-dot active" onclick="goToSlide(0)"></div>
+        <div class="carousel-dot" onclick="goToSlide(1)"></div>
+        <div class="carousel-dot" onclick="goToSlide(2)"></div>
+      </div>
+    </div>
 
     <!-- certification choice -->
     <div class="grid">
@@ -64,7 +65,7 @@
             </div>
             Connect To QuickBooks
           </h3>
-          
+
           <div style="display: flex;">
             <div class="icon-circle" style="background-color: rgba(0, 166, 81, 0.1); color: var(--secondary);">
               <span class="fa-plug"></span>
@@ -72,7 +73,7 @@
             <p class="text-gray-600 mb-4">Link your QuickBooks account for financial data access</p>
           </div>
         </div>
-        
+
         <button onclick="launchPopup('/connect_to_quickbooks')" class="btn btn-secondary btn-hover">
           <span class="fa-link mr-2"></span>
           Connect to QuickBooks
@@ -95,72 +96,64 @@
   </footer>
 
   <script>
-     // the logic of play in turn
+    // the logic of play in turn
     let currentSlide = 0;
     const slides = document.getElementById('carouselSlides');
     const dots = document.getElementById('carouselDots').children;
     const slideCount = document.querySelectorAll('.carousel-slide').length;
-    
+
     // Initialize the play in turn
     function initCarousel() {
       updateSlide();
       // play in turn automaticly
       setInterval(nextSlide, 5000);
     }
-    
+
     function nextSlide() {
       currentSlide = (currentSlide + 1) % slideCount;
       updateSlide();
     }
-    
+
     function prevSlide() {
       currentSlide = (currentSlide - 1 + slideCount) % slideCount;
       updateSlide();
     }
-    
+
     function goToSlide(index) {
       currentSlide = index;
       updateSlide();
     }
-    
+
     function updateSlide() {
       // Move the play in turn
       slides.style.transform = `translateX(-${currentSlide * 100}%)`;
-      
+
       // Update indicated point
       for (let i = 0; i < dots.length; i++) {
         dots[i].classList.toggle('active', i === currentSlide);
       }
     }
-    
+
     // Launch the play in turn
     initCarousel();
 
     function launchPopup(path) {
       var parameters = "location=1,width=800,height=650";
       parameters += ",left=" + (screen.width - 800) / 2 + ",top=" + (screen.height - 650) / 2;
-      
+
       // Add button animation
       const btn = event.currentTarget;
       btn.classList.add('animate-pulse');
-      
-      // Open authentification window
-      const authWindow = window.open(path, 'IntuitAuth', parameters);
-      
+
+      // redirect to authentification window
+      window.location.href = path;
+
       // Redo button situation
       setTimeout(() => {
         btn.classList.remove('animate-pulse');
       }, 1000);
-      
-      // Listen window close
-      const checkWindowClosed = setInterval(() => {
-        if (authWindow.closed) {
-          clearInterval(checkWindowClosed);
-          console.log('认证窗口已关闭');
-        }
-      }, 1000);
     }
   </script>
 </body>
+
 </html>
-    
