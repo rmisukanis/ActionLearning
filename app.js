@@ -1,12 +1,14 @@
 require('dotenv').config();           // load env variables once, at the top
 const { Asset } = require('./models');
 
-var path = require('path')
-var config = require('./config.json')
-var express = require('express')
-var session = require('express-session')
+const path = require('path')
+const config = require('./config.json')
+const express = require('express')
+const session = require('express-session')
 const sequelize = require("./config/db");
-var app = express()
+const app = express()
+
+const dbImportAssets = require('./routes/dbFunctions.js');
 
 app.set('views', path.join(__dirname, 'views'))
 app.set('view engine', 'ejs')
@@ -59,15 +61,30 @@ app.use('/queryDeposit', require('./routes/queryDeposit.js'));
 
 app.use('/queryAPITesting', require('./routes/queryAPITesting.js'));
 
-//sequelize.sync({ alter: true })
-//.then(() => {
-//console.log('✅ Database & tables ready');
-//app.listen(3000, () => console.log('Example app listening on port 3000!'));
-//})
-//.catch((err) => {
-//console.error('❌ Database sync error:', err);
-//});
+//database imports
+app.use('/dbImportAssets', dbImportAssets);
+
+/*
+sequelize.sync({ alter: true })
+.then(() => {
+console.log('✅ Database & tables ready');
+app.listen(3000, () => console.log('Example app listening on port 3000!'));
+})
+.catch((err) => {
+console.error('❌ Database sync error:', err);
+});
 
 app.listen(3000, () => {
   console.log('🚀 App running at http://localhost:3000');
 });
+*/
+sequelize.sync({ alter: true })
+  .then(() => {
+    console.log('✅ Database & tables ready');
+    app.listen(3000, () => {
+      console.log('🚀 App running at http://localhost:3000');
+    });
+  })
+  .catch((err) => {
+    console.error('❌ Database sync error:', err);
+  });

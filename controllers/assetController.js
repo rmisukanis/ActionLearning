@@ -3,35 +3,33 @@
 const { Asset } = require('../models');
 const { validationResult } = require('express-validator');
 
-function calculateDepreciation({ depreciationMethod, totalAmount, salvageValue, usefulLifeYears }) {
-    // salvageValue defaults to 0 if not provided
+function calculateDepreciation({ depreciationMethod, totalAmount, salvageValue, usefulLifeYears, transactionDate }) {
     salvageValue = salvageValue ?? 0;
-
-    // Useful life in years - you can adjust this if you store it differently
     usefulLifeYears = usefulLifeYears ?? 5;
 
+    let annualDep = 0;
+    let monthlyDep = 0;
+
     if (depreciationMethod === 'Straight Line') {
-        // Annual Depreciation = (Cost - Salvage) / Useful Life
-        const annualDep = (totalAmount - salvageValue) / usefulLifeYears;
-        return {
-            annualDepreciation: annualDep,
-            monthlyDepreciation: annualDep / 12,
-        };
+        annualDep = (totalAmount - salvageValue) / usefulLifeYears;
+        monthlyDep = annualDep / 12;
     } else if (depreciationMethod === 'Declining Balance') {
-        // Double declining balance rate
         const rate = 2 / usefulLifeYears;
-        // For simplicity, return first year depreciation as totalAmount * rate
-        // Real DB logic would track accumulated depreciation over time.
-        return {
-            annualDepreciation: totalAmount * rate,
-            monthlyDepreciation: (totalAmount * rate) / 12,
-        };
+        annualDep = totalAmount * rate;
+        monthlyDep = annualDep / 12;
     }
 
-    // Default fallback, no depreciation
+    // Get start date from transaction
+        const start = new Date(transactionDate);
+
+        // Calculate the final depreciation month (e.g., +48 months if 4 years)
+        const totalMonths = usefulLifeYears * 12;
+        const lastDepreciationDate = new Date(start.getFullYear(), start.getMonth() + totalMonths - 1, 1);
+
     return {
-        annualDepreciation: 0,
-        monthlyDepreciation: 0,
+        annualDepreciation: annualDep,
+        monthlyDepreciation: monthlyDep,
+        lastDepreciationDate // 👈 include this
     };
 }
 
@@ -67,14 +65,20 @@ exports.importAsset = async (req, res) => {
         }
 
         // Calculate depreciation
-        const { annualDepreciation, monthlyDepreciation } = calculateDepreciation({
+        const {
+            annualDepreciation,
+            monthlyDepreciation,
+            lastDepreciationDate
+            } = calculateDepreciation({
             depreciationMethod,
             totalAmount,
             salvageValue,
             usefulLifeYears,
-        });
+            transactionDate 
+            });
 
         // Create asset with depreciation info included
+        console.log('usefulLifeYears value + type before insert:', usefulLifeYears, typeof usefulLifeYears);
         const newAsset = await Asset.create({
             quickBooksBillId,
             transactionDate,
@@ -87,6 +91,8 @@ exports.importAsset = async (req, res) => {
             salvageValue,
             annualDepreciation,
             monthlyDepreciation,
+            usefulLifeYears,
+            lastDepreciationDate,
             status: 'pending'  // imported -> pending for review
         });
 
@@ -118,7 +124,7 @@ exports.getAsset = async (req, res) => {
  * @desc Update asset details (adjustments)
  * @route PUT /assets/:id
  */
-const { calculateDepreciation } = require('../utils/depreciation');
+//const { calculateDepreciation } = require('../utils/depreciation');
 
 exports.updateAsset = async (req, res) => {
     try {
@@ -245,4 +251,52 @@ exports.calculateMonthEndDepreciation = async (req, res) => {
         console.error('Error calculating month-end depreciation:', err);
         res.status(500).json({ error: 'Server error calculating month-end depreciation.' });
     }
+};
+
+/**
+ * @desc updates accumulated depreciation for all assets
+ * It can be updated multiple times a month, current month end will be used to send to QuickBooks
+ * @route POST /assets/depreciation/update-accumulated
+ */
+exports.updateAccumulatedDepreciation = async (req, res) => {
+  try {
+    const assets = await Asset.findAll({ where: { fullyDepreciated: false } });
+    const now = new Date();
+
+    let updatedAssets = [];
+
+    for (const asset of assets) {
+      const txDate = new Date(asset.transactionDate);
+
+      // Calculate months passed since purchase
+      const elapsedMonths =
+        (now.getFullYear() - txDate.getFullYear()) * 12 +
+        (now.getMonth() - txDate.getMonth());
+
+      // Cap to useful life
+      const totalMonths = asset.usefulLifeYears * 12;
+      const effectiveMonths = Math.min(elapsedMonths, totalMonths);
+
+      const newAccumulated = effectiveMonths * parseFloat(asset.monthlyDepreciation || 0);
+      const fullyDepreciated = effectiveMonths >= totalMonths;
+
+      asset.accumulatedDepreciation = newAccumulated;
+      asset.fullyDepreciated = fullyDepreciated;
+
+      await asset.save();
+      updatedAssets.push({
+        id: asset.id,
+        accumulatedDepreciation: newAccumulated,
+        fullyDepreciated
+      });
+    }
+
+    res.status(200).json({
+      message: 'Accumulated depreciation updated.',
+      updatedAssets
+    });
+  } catch (err) {
+    console.error('Error updating accumulated depreciation:', err);
+    res.status(500).json({ error: 'Server error updating accumulated depreciation.' });
+  }
 };
