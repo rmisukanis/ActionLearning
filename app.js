@@ -9,7 +9,8 @@ const sequelize = require("./config/db");
 const app = express()
 
 const dbImportAssets = require('./routes/dbFunctions.js');
-const journalEntryRoutes = require('./routes/journalEntries');
+const journalEntryRoutes = require('./routes/journalEntries.js');
+
 
 app.set('views', path.join(__dirname, 'views'))
 app.set('view engine', 'ejs')
@@ -24,6 +25,12 @@ app.use(session({ secret: 'secret', resave: 'false', saveUninitialized: 'false' 
 app.get('/', function (req, res) {
   res.render('home', config)
 })
+
+// render the EJS page: Testing the Journal Entry
+app.get('/journalEntryTesting', (req, res) => {
+  res.render('journalEntryTesting');
+});
+
 
 // Sign In With Intuit, Connect To QuickBooks, or Get App Now
 // These calls will redirect to Intuit's authorization flow
@@ -46,9 +53,6 @@ app.use('/assets', require('./routes/assets.js'));
 //uploading current assets (bill account)
 app.use('/bill', require('./routes/bill.js'));
 
-//uploading current assets (bill account)
-app.use('/bill', require('./routes/journalentry.js'));
-
 
 //call generic query
 app.use('/queryGeneric', require('./routes/queryGeneric.js'));
@@ -65,11 +69,11 @@ app.use('/queryAPITesting', require('./routes/queryAPITesting.js'));
 //database imports/assets controller (back-end functionality)
 app.use('/dbImportAssets', dbImportAssets);
 
-//journal entries
-app.use('/journal-entries', journalEntryRoutes);
 
 //posting to quickbooks journal entry
 app.use('/qbJournalEntry', require('./routes/qbJournalEntry.js'));
+
+app.use('/journalEntries', journalEntryRoutes);
 
 /*
 sequelize.sync({ alter: true })
@@ -85,17 +89,18 @@ app.listen(3000, () => {
   console.log('🚀 App running at http://localhost:3000');
 });
 */
-//sequelize.sync({ alter: true })
-  //.then(() => {
-    //console.log('✅ Database & tables ready');
-    //app.listen(3000, () => {
-      //console.log('🚀 App running at http://localhost:3000');
-    //});
-  //})
-  //.catch((err) => {
-    //console.error('❌ Database sync error:', err);
-  //});
 
-  app.listen(3000, () => {
-    console.log('🚀 App running at http://localhost:3000');
+sequelize.sync({ alter: true })
+  .then(() => {
+    console.log('✅ Database & tables ready');
+    app.listen(3000, () => {
+      console.log('🚀 App running at http://localhost:3000');
+    });
+  })
+  .catch((err) => {
+    console.error('❌ Database sync error:', err);
   });
+
+//  app.listen(3000, () => {
+ //   console.log('🚀 App running at http://localhost:3000');
+ // });
