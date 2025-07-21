@@ -223,35 +223,79 @@ exports.markAssetPosted = async (req, res) => {
     }
 };
 
+const runAccumulatedDepreciationUpdate = async () => {
+  const assets = await Asset.findAll({ where: { fullyDepreciated: false } });
+  const now = new Date();
+
+  for (const asset of assets) {
+    const txDate = new Date(asset.transactionDate);
+
+    const elapsedMonths =
+      (now.getFullYear() - txDate.getFullYear()) * 12 +
+      (now.getMonth() - txDate.getMonth()) + 1;
+
+    // Prevent negative depreciation if txDate is in the future
+    if (elapsedMonths < 0) elapsedMonths = 0;
+
+    const totalMonths = asset.usefulLifeYears * 12;
+    const effectiveMonths = Math.min(elapsedMonths, totalMonths);
+
+    const newAccumulated = effectiveMonths * parseFloat(asset.monthlyDepreciation || 0);
+    const fullyDepreciated = effectiveMonths >= totalMonths;
+
+    asset.accumulatedDepreciation = newAccumulated;
+    asset.fullyDepreciated = fullyDepreciated;
+
+    await asset.save();
+  }
+};
+
+
 /**This is used to just get the value for the journal entry. 
  * @desc Calculate month-end depreciation for all active assets
- * @route GET /assets/depreciation/month-end
+ * @route POST /assets/depreciation/month-end
  */
+const { Op } = require('sequelize');
+
 exports.calculateMonthEndDepreciation = async (req, res) => {
-    try {
-        // Fetch all posted assets (or your status criteria)
-        const assets = await Asset.findAll({ where: { status: 'posted' } });
+  try {
+    // ⏱️ First, update accumulated depreciation before continuing
+    await runAccumulatedDepreciationUpdate();
 
-        // Sum monthly depreciation for all assets
-        let totalMonthlyDepreciation = 0;
-        const perAssetDepreciation = assets.map(asset => {
-            totalMonthlyDepreciation += asset.monthlyDepreciation || 0;
-            return {
-                id: asset.id,
-                description: asset.description,
-                monthlyDepreciation: asset.monthlyDepreciation || 0,
-            };
-        });
+    const now = new Date();
+    const startOfCurrentMonth = new Date(now.getFullYear(), now.getMonth(), 1);
 
-        res.json({
-            totalMonthlyDepreciation,
-            perAssetDepreciation,
-        });
-    } catch (err) {
-        console.error('Error calculating month-end depreciation:', err);
-        res.status(500).json({ error: 'Server error calculating month-end depreciation.' });
-    }
+    const assets = await Asset.findAll({
+      where: {
+        lastDepreciationDate: {
+          [Op.gte]: startOfCurrentMonth
+        }
+      }
+    });
+
+    let totalMonthlyDepreciation = 0;
+
+    const perAssetDepreciation = assets.map(asset => {
+      const monthly = parseFloat(asset.monthlyDepreciation || 0);
+      totalMonthlyDepreciation += monthly;
+      return {
+        id: asset.id,
+        description: asset.description,
+        monthlyDepreciation: monthly,
+      };
+    });
+
+    res.json({
+      totalMonthlyDepreciation: parseFloat(totalMonthlyDepreciation.toFixed(2)),
+      perAssetDepreciation,
+    });
+  } catch (err) {
+    console.error('Error calculating month-end depreciation:', err);
+    res.status(500).json({ error: 'Server error calculating month-end depreciation.' });
+  }
 };
+
+
 
 /**
  * @desc updates accumulated depreciation for all assets
@@ -260,46 +304,14 @@ exports.calculateMonthEndDepreciation = async (req, res) => {
  */
 exports.updateAccumulatedDepreciation = async (req, res) => {
   try {
-    const assets = await Asset.findAll({ where: { fullyDepreciated: false } });
-    const now = new Date();
-
-    let updatedAssets = [];
-
-    for (const asset of assets) {
-      const txDate = new Date(asset.transactionDate);
-
-      // Calculate months passed since purchase
-      const elapsedMonths =
-        (now.getFullYear() - txDate.getFullYear()) * 12 +
-        (now.getMonth() - txDate.getMonth());
-
-      // Cap to useful life
-      const totalMonths = asset.usefulLifeYears * 12;
-      const effectiveMonths = Math.min(elapsedMonths, totalMonths);
-
-      const newAccumulated = effectiveMonths * parseFloat(asset.monthlyDepreciation || 0);
-      const fullyDepreciated = effectiveMonths >= totalMonths;
-
-      asset.accumulatedDepreciation = newAccumulated;
-      asset.fullyDepreciated = fullyDepreciated;
-
-      await asset.save();
-      updatedAssets.push({
-        id: asset.id,
-        accumulatedDepreciation: newAccumulated,
-        fullyDepreciated
-      });
-    }
-
-    res.status(200).json({
-      message: 'Accumulated depreciation updated.',
-      updatedAssets
-    });
+    await runAccumulatedDepreciationUpdate();
+    res.status(200).json({ message: 'Accumulated depreciation updated.' });
   } catch (err) {
     console.error('Error updating accumulated depreciation:', err);
     res.status(500).json({ error: 'Server error updating accumulated depreciation.' });
   }
 };
+
 
 
 
