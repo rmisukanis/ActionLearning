@@ -15,14 +15,14 @@ router.get('/', (req, res) => {
 });
 
 //load depreciation table data
-router.get('/GetAllAssets', assetController.getAllAssets);
+router.get('/GetAllDatabaseAssets', assetController.getAllAssets);
 
 //update depreciation data to the backend
 router.put('/${billId}', (req, res) => {
     // TODO
 });
 
-//
+
 router.get('/depreciationEntryJournal', (req, res) => {
     // TODO
 });

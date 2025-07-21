@@ -328,3 +328,9 @@ exports.getAllAssets = async (req, res) => {
     res.status(500).json({ error: 'Server error fetching assets.' });
   }
 };
+
+
+/**
+ * @desc Get all assets that are fully depreciated
+ * @route GET /assets/fully-depreciated
+ */

@@ -9,6 +9,7 @@ const sequelize = require("./config/db");
 const app = express()
 
 const dbImportAssets = require('./routes/dbFunctions.js');
+const journalEntryRoutes = require('./routes/journalEntries');
 
 app.set('views', path.join(__dirname, 'views'))
 app.set('view engine', 'ejs')
@@ -61,10 +62,14 @@ app.use('/queryDeposit', require('./routes/queryDeposit.js'));
 
 app.use('/queryAPITesting', require('./routes/queryAPITesting.js'));
 
-//database imports
+//database imports/assets controller (back-end functionality)
 app.use('/dbImportAssets', dbImportAssets);
 
-app.use('/assets', require('./routes/assets.js'));
+//journal entries
+app.use('/journal-entries', journalEntryRoutes);
+
+//posting to quickbooks journal entry
+app.use('/qbJournalEntry', require('./routes/qbJournalEntry.js'));
 
 /*
 sequelize.sync({ alter: true })
