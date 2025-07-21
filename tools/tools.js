@@ -6,7 +6,6 @@ var config = require('../config.json')
 
 require('dotenv').config({ path: '../.env' });
 
-
 var Tools = function () {
   var tools = this;
 
