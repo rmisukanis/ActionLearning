@@ -223,7 +223,7 @@ exports.markAssetPosted = async (req, res) => {
     }
 };
 
-/**
+/**This is used to just get the value for the journal entry. 
  * @desc Calculate month-end depreciation for all active assets
  * @route GET /assets/depreciation/month-end
  */
@@ -298,5 +298,21 @@ exports.updateAccumulatedDepreciation = async (req, res) => {
   } catch (err) {
     console.error('Error updating accumulated depreciation:', err);
     res.status(500).json({ error: 'Server error updating accumulated depreciation.' });
+  }
+};
+
+
+
+/**
+ * @desc Get all assets
+ * @route GET /assets
+ */
+exports.getAllAssets = async (req, res) => {
+  try {
+    const assets = await Asset.findAll();
+    res.status(200).json(assets);
+  } catch (err) {
+    console.error('Error fetching all assets:', err);
+    res.status(500).json({ error: 'Server error fetching assets.' });
   }
 };

@@ -5,15 +5,17 @@ var router = express.Router();
 const sampleAssetsTableData = require('../data/assetsTableData');
 const sampleDepreciationTableData = require('../data/depreciationTableData');
 
-router.get('/', (req, res) => {
 
+/** Back-END Data */
+const assetController = require('../controllers/assetController');
+
+
+router.get('/', (req, res) => {
     res.render('assets');
 });
 
 //load depreciation table data
-router.get('/depreciation', (req, res) => {
-    res.json(sampleDepreciationTableData);
-});
+router.get('/GetAllAssets', assetController.getAllAssets);
 
 //update depreciation data to the backend
 router.put('/${billId}', (req, res) => {

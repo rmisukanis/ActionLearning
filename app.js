@@ -64,6 +64,8 @@ app.use('/queryAPITesting', require('./routes/queryAPITesting.js'));
 //database imports
 app.use('/dbImportAssets', dbImportAssets);
 
+app.use('/assets', require('./routes/assets.js'));
+
 /*
 sequelize.sync({ alter: true })
 .then(() => {
