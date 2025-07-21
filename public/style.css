@@ -531,3 +531,16 @@ a:visited {
   align-items: center;
   gap: 12px;
 }
+
+#depreciationTable td:first-child,
+#depreciationTable th:first-child {
+  font-weight: bold;
+  color: #333;
+}
+
+/* Highlight the current month column */
+.current-month {
+  background-color: #dfffeb;
+  font-weight: bold;
+  color: #333;
+}
