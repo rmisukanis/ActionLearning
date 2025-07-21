@@ -180,9 +180,10 @@
                 </div>
 
                 <div class="form-group">
-                    <label for="editDepreciationMonths">Depreciation Period</label>
-                    <input type="number" id="editDepreciationMonths" name="depreciationMonths"
-                        placeholder="Please indicate how many months the asset will be depreciated over" min="1">
+                    <label for="editDepreciationYears">Depreciation Period</label>
+                    <input type="number" id="editDepreciationYears" name="depreciationYears"
+                        placeholder="Please indicate how many years the asset will be depreciated over" min="1"
+                        required>
                 </div>
 
                 <div class="form-group">
@@ -418,7 +419,7 @@
             }
             document.getElementById('editBillId').value = asset.BillId;
             document.getElementById('initialCost').value = asset.TotalAmount || '';
-            document.getElementById('editDepreciationMonths').value = asset.DepreciationMonths || '';
+            document.getElementById('editDepreciationYears').value = asset.DepreciationYears || '';
             document.getElementById('editSalvageValue').value = asset.SalvageValue || '';
             document.getElementById('editSalvageValue').max = asset.TotalAmount || '';
             document.getElementById('editModal').style.display = 'flex';
@@ -434,10 +435,22 @@
             const billId = formData.get('billId');
             console.log('Retrieved billId =', billId);
 
+            const asset = assetsData.find(a => a.BillId === billId);
+            if (!asset) {
+                showError('Asset not found.');
+                return;
+            }
+
             const updatedAsset = {
-                BillId: billId,
-                DepreciationMonths: parseInt(formData.get('depreciationMonths')),
-                SalvageValue: parseFloat(formData.get('salvageValue'))
+                quickBooksBillId: billId,
+                transactionDate: formatDate(asset.TransactionDate),
+                totalAmount: parseFloat(asset.TotalAmount),
+                description: asset.BillDescription,
+                accountRef: asset.BillAccount,
+                accountName: asset.BillAccountName,
+                depreciationMethod: "Straight Line",
+                salvageValue: parseFloat(formData.get('salvageValue')),
+                usefulLifeYears: parseInt(formData.get('depreciationYears')),
             };
             console.log('Constructed updatedAsset =', updatedAsset);
 
