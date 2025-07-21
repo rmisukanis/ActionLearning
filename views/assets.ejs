@@ -471,8 +471,8 @@
             // Use the PUT method to indicate "update resource" and send the updated contents of the asset as a JSON string
             // Back-end API!!!!!
             try {
-                const response = await fetch(`/assets/${billId}`, {
-                    method: 'PUT',
+                const response = await fetch(`/dbImportAssets/import`, {
+                    method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                     },
