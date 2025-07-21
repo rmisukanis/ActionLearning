@@ -85,13 +85,17 @@ app.listen(3000, () => {
   console.log('🚀 App running at http://localhost:3000');
 });
 */
-sequelize.sync({ alter: true })
-  .then(() => {
-    console.log('✅ Database & tables ready');
-    app.listen(3000, () => {
-      console.log('🚀 App running at http://localhost:3000');
-    });
-  })
-  .catch((err) => {
-    console.error('❌ Database sync error:', err);
+//sequelize.sync({ alter: true })
+  //.then(() => {
+    //console.log('✅ Database & tables ready');
+    //app.listen(3000, () => {
+      //console.log('🚀 App running at http://localhost:3000');
+    //});
+  //})
+  //.catch((err) => {
+    //console.error('❌ Database sync error:', err);
+  //});
+
+  app.listen(3000, () => {
+    console.log('🚀 App running at http://localhost:3000');
   });

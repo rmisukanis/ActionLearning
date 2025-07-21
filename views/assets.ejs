@@ -138,6 +138,10 @@
         <div class="table-section" id="depreciationTableSection" style="display: none;">
             <div class="table-header">
                 <h3 class="table-title" id="tableTitle">Depreciation Journal</h3>
+                <div class="button-group">
+                    <button class="btn btn-secondary" id="updateJournalBtn">🔄 Update</button>
+                    <button class="btn" id="submitJournalBtn">✅ Submit</button>
+                </div>
             </div>
             <div class="journal-entry">
                 <label>Depreciation Expense of the current month:</label>
@@ -159,6 +163,7 @@
                 <p>No assets found for the selected period.</p>
                 <p>Please select a different date range or check your QuickBooks data.</p>
             </div>
+
         </div>
 
     </div>
@@ -203,6 +208,7 @@
         let assetsData = [];
 
         // Initialize the page
+        // Script logic initialized when the page loads to set the default date range and update the asset summary display on the page
         document.addEventListener('DOMContentLoaded', function () {
             // Set default dates (last 30 days)
             const endDate = new Date();
@@ -251,9 +257,12 @@
             showLoading(true);
             hideMessages();
             const sqlQuery = `SELECT * FROM Bill WHERE TxnDate >= '${startDate}' AND TxnDate <= '${endDate}'`;
-            console.log('sqlQuery:', sqlQuery);
 
-            const url = `/bill/queryBill?query=${encodeURIComponent(sqlQuery)}`;
+            console.log('sqlQuery:', sqlQuery); 
+            // Call the backend interface to obtain data: Generate a GET request URL, 
+            // and the query string includes the encoded SQL statement (
+            // find the records in the Bill table that meet the date conditions and print them out for debugging.)
+            const url = `/bill/queryBill?query=${encodeURIComponent(sqlQuery)}`; // (Back-end API!!!!!)
             try {
                 fetch(url)
                     .then(response => {
@@ -320,7 +329,7 @@
             hideMessages();
 
             try {
-                const response = await fetch('/assets/depreciation', {// Update the URL to match server endpoint
+                const response = await fetch('/assets/depreciation', {// Update the URL to match server endpoint (Back-end API!!!!!)
                     method: 'GET',
                     headers: {
                         'Content-Type': 'application/json',
@@ -383,6 +392,7 @@
             });
         }
 
+        // Update the content of the Summary Cards at the top or side of the page based on asset data and date range
         function updateSummary(data, startDate, endDate) {
             const summaryCards = document.getElementById('summaryCards');
             const totalAssets = document.getElementById('totalAssets');
@@ -410,6 +420,8 @@
             summaryCards.style.display = 'grid';
         }
 
+        // Find the corresponding asset according to the incoming bill ID, 
+        // fill the data into the edit pop-up form, and display the pop-up window
         function editAsset(billId) {
             const asset = assetsData.find(a => a.BillId === billId);
             if (!asset) {
@@ -424,10 +436,12 @@
             document.getElementById('editModal').style.display = 'flex';
         }
 
+        // Close the pop-up window without saving any changes
         function closeEditModal() {
             document.getElementById('editModal').style.display = 'none';
         }
 
+        // The main logic executed when clicking the "Save" button after editing asset information
         async function saveAssetChanges() {
 
             const formData = new FormData(document.getElementById('editForm'));
@@ -441,6 +455,8 @@
             };
             console.log('Constructed updatedAsset =', updatedAsset);
 
+            // Use the PUT method to indicate "update resource" and send the updated contents of the asset as a JSON string
+            // Back-end API!!!!!
             try {
                 const response = await fetch(`/assets/${billId}`, {
                     method: 'PUT',
@@ -471,6 +487,7 @@
             }
         }
 
+        // Format the date
         function formatDate(dateString) {
             const date = new Date(dateString);
             return date.toLocaleDateString('en-US', {
@@ -480,6 +497,7 @@
             });
         }
 
+        // Format a number as an amount with two decimal places (with thousands)
         function formatNumber(number) {
             return new Intl.NumberFormat('en-US', {
                 minimumFractionDigits: 2,
@@ -487,10 +505,12 @@
             }).format(number);
         }
 
+        // Control the display/hide of the "loading" icon or animation
         function showLoading(show) {
             document.getElementById('loading').style.display = show ? 'block' : 'none';
         }
 
+        // Display error message (red ❌ box)
         function showError(message) {
             const errorDiv = document.getElementById('errorMessage');
             errorDiv.innerHTML = `<strong>❌ Error:</strong> ${message}`;
@@ -501,6 +521,7 @@
             }, 6000);
         }
 
+        // Display successful message
         function showSuccess(message) {
             const successDiv = document.getElementById('successMessage');
             successDiv.innerHTML = `<strong>✅ Success:</strong> ${message}`;
@@ -511,18 +532,23 @@
             }, 4000);
         }
 
+        // Hide error and success prompt information at one time. Call before the request starts to avoid the previous message residue
         function hideMessages() {
             document.getElementById('errorMessage').style.display = 'none';
             document.getElementById('successMessage').style.display = 'none';
         }
 
-        // Close modal when clicking outside
+        // Close the edit pop-up window when clicking on the blank area of the modal box 
+        // to achieve a user-friendly interactive experience
         document.getElementById('editModal').addEventListener('click', function (e) {
             if (e.target === this) {
                 closeEditModal();
             }
         });
 
+        // When the page is loaded, the depreciation data is automatically obtained from the backend 
+        // and filled into the fields in the form or interface to display accounting depreciation related data
+        // Back-end API!!!!!
         async function fetchDepreciationData() {
             try {
                 const response = await fetch('/asset/depreciationEntryJournal');
@@ -547,9 +573,12 @@
             }
         }
 
-        // load data while page loads
+        // fetchDepreciationData() is executed immediately after the entire HTML page DOM is loaded, 
+        // ensuring that the data is automatically fetched and displayed when the page is opened
         window.addEventListener('DOMContentLoaded', fetchDepreciationData);
 
+        // Based on the depreciation data returned by the backend, an "asset depreciation table" is dynamically generated and displayed, 
+        // covering the depreciation amount distribution for a total of 13 months before and after the current month.
         function toggleDepreciationTable(data) {
             // depreciation table
             const table = document.getElementById("depreciationTable");
