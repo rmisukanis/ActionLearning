@@ -14,7 +14,7 @@ router.get('/', (req, res) => {
 
 /** /api_call **/
 router.get('/queryBill', async function (req, res) {
-    console.log('🚀 /bill/queryBill route called');
+  console.log('🚀 /bill/queryBill route called');
 
   const sqlQuery = req.query.query;
 
@@ -46,15 +46,14 @@ router.get('/queryBill', async function (req, res) {
   request(requestObj, async function (err, response) {
     try {
       const { err: authError, response: authResponse } = await tools.checkForUnauthorized(req, requestObj, err, response);
-      
+
       if (authError || authResponse.statusCode !== 200) {
         return res.json({ error: authError, statusCode: authResponse.statusCode });
       }
-      
+
       const billsBody = JSON.parse(authResponse.body);
       const bills = billsBody.QueryResponse?.Bill || [];
-      
-      const billSummary = bills.map(bill => ({
+      let billSummary = bills.map(bill => ({
 
 
         BillId: bill.Id || 0,
@@ -65,6 +64,20 @@ router.get('/queryBill', async function (req, res) {
         BillAccountName: bill.Line?.[0]?.AccountBasedExpenseLineDetail?.AccountRef?.name || 'Name Error'
 
       }));
+
+      //filter deprecated bills
+      const Asset = require('../models/asset');
+      const billIds = billSummary.map(b => b.BillId);
+
+      if (billIds.length > 0) {
+        const existingAssets = await Asset.findAll({
+          attributes: ['quickBooksBillId'],
+          where: { quickBooksBillId: billIds }
+        });
+        const existingIds = existingAssets.map(a => a.quickBooksBillId);
+
+        billSummary = billSummary.filter(b => !existingIds.includes(b.BillId));
+      }
 
       console.log('Bill summary:', billSummary);
       res.json({ billSummary });  // Send the summary to the front-end
