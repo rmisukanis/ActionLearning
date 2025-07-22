@@ -15,14 +15,18 @@ router.get('/', (req, res) => {
 });
 
 //load depreciation table data
-router.get('/GetAllAssets', assetController.getAllAssets);
+router.get('/GetAllDatabaseAssets', assetController.getAllAssets);
+
+//call current month-end deprepcaiton for showing
+router.get('/calculateMonthEndDepreciation', assetController.calculateMonthEndDepreciation);
+
 
 //update depreciation data to the backend
 router.put('/${billId}', (req, res) => {
     // TODO
 });
 
-//
+
 router.get('/depreciationEntryJournal', (req, res) => {
     // TODO
 });
