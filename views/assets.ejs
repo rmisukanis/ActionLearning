@@ -149,9 +149,6 @@
                 <label>Depreciation Expense of the current month:</label>
                 <input type="text" class="journal-entry-input" id="depreciationExpense"
                     placeholder="Depreciation Expense" disabled><br><br>
-                <label>Accumulated Depreciation:</label>
-                <input type="text" class="journal-entry-input" id="accumulatedDepreciation"
-                    placeholder="Accumulated Depreciation" disabled>
             </div>
 
             <div class="table-container">
@@ -326,7 +323,7 @@
             hideMessages();
 
             try {
-                const response = await fetch('/assets/getAllAssets', {// Update the URL to match server endpoint (Back-end API!!!!!)
+                const response = await fetch('/assets/getAllDatabaseAssets', {// Update the URL to match server endpoint (Back-end API!!!!!)
                     method: 'GET',
                     headers: {
                         'Content-Type': 'application/json',
@@ -655,17 +652,14 @@
 
                 // supposed data format：
                 // {
-                //   "depreciationExpense": 500,
-                //   "accumulatedDepreciation": 10000
+                //   "depreciationExpense": 500
                 // }
 
                 document.getElementById('depreciationExpense').value = data.depreciationExpense ?? 'N/A';
-                document.getElementById('accumulatedDepreciation').value = data.accumulatedDepreciation ?? 'N/A';
             } catch (error) {
                 console.error('Error fetching depreciation data:', error);
                 // default values
                 document.getElementById('depreciationExpense').value = 'Loading...';
-                document.getElementById('accumulatedDepreciation').value = 'Loading...';
             }
         }
 
