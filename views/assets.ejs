@@ -132,6 +132,8 @@
                 <p>No assets found for the selected period.</p>
                 <p>Please select a different date range or check your QuickBooks data.</p>
             </div>
+            <!-- pagination -->
+            <div id="pagination" class="pagination"></div>
         </div>
 
         <!-- Depreciation Table -->
@@ -233,7 +235,9 @@
         document.getElementById('editForm').addEventListener('submit', function (e) {
             e.preventDefault();
             saveAssetChanges();
-            // Load depreciation table while submitting form
+            //reload data after saving
+            loadAssetsData();
+            // Load depreciation table while submitting form            
             loadDepreciationData();
             document.getElementById('depreciationTableSection').style.display = 'block';
         });
@@ -259,7 +263,7 @@
             hideMessages();
             const sqlQuery = `SELECT * FROM Bill WHERE TxnDate >= '${startDate}' AND TxnDate <= '${endDate}'`;
 
-            console.log('sqlQuery:', sqlQuery); 
+            console.log('sqlQuery:', sqlQuery);
             // Call the backend interface to obtain data: Generate a GET request URL, 
             // and the query string includes the encoded SQL statement (
             // find the records in the Bill table that meet the date conditions and print them out for debugging.)
@@ -288,41 +292,33 @@
             } finally {
                 showLoading(false);
             }
-
-
-
-            // try {
-            //     const response = await fetch('/assets/queryBill', {// Update the URL to match server endpoint
-            //         method: 'POST',
-            //         headers: {
-            //             'Content-Type': 'application/json',
-            //         },
-            //         body: JSON.stringify({
-            //             startDate: startDate,
-            //             endDate: endDate,
-            //             accountFilter: accountFilter
-            //         })
-            //     });
-
-            //     if (!response.ok) {
-            //         throw new Error(`HTTP error! status: ${response.status}`);
-            //     }
-
-            //     const data = await response.json();
-            //     assetsData = data || [];
-
-            //     displayAssetsData(assetsData);
-            //     updateSummary(assetsData, startDate, endDate);
-            //     showSuccess('Assets data loaded successfully!');
-
-            // } catch (error) {
-            //     console.error('Error loading assets data:', error);
-            //     showError('Failed to load assets data. Please check your connection and try again.');
-            // } finally {
-            //     showLoading(false);
-            // }
         }
+        // transform asset data to the format used in toggleDepreciationTable 
+        function transformDepreciationData(rawData) {
+            return rawData.map(item => {
+                const depreciation = {};
 
+                // transform depreciation data
+                const start = new Date(item.transactionDate);
+                const end = new Date(item.lastDepreciationDate);
+                const monthlyValue = parseFloat(item.monthlyDepreciation);
+
+                // iterate through each month
+                let current = new Date(start.getFullYear(), start.getMonth(), 1);
+                const last = new Date(end.getFullYear(), end.getMonth(), 1);
+
+                while (current <= last) {
+                    const key = `${current.getFullYear()}-${String(current.getMonth() + 1).padStart(2, '0')}`;
+                    depreciation[key] = monthlyValue;
+                    current.setMonth(current.getMonth() + 1);
+                }
+
+                return {
+                    asset: item.description || item.accountName || "Unnamed Asset",
+                    depreciation
+                };
+            });
+        }
 
         async function loadDepreciationData() {
 
@@ -330,7 +326,7 @@
             hideMessages();
 
             try {
-                const response = await fetch('/assets/depreciation', {// Update the URL to match server endpoint (Back-end API!!!!!)
+                const response = await fetch('/assets/getAllAssets', {// Update the URL to match server endpoint (Back-end API!!!!!)
                     method: 'GET',
                     headers: {
                         'Content-Type': 'application/json',
@@ -341,14 +337,13 @@
                     throw new Error(`HTTP error! status: ${response.status}`);
                 }
 
-                const data = await response.json();
-                toggleDepreciationTable(data)
+                const rawData = await response.json();
 
-                // assetsData = data || [];
-                // displayAssetsData(assetsData);
-                // updateSummary(assetsData, startDate, endDate);
-                // showSuccess('Assets data loaded successfully!');
+                // transform data
+                const transformedData = transformDepreciationData(rawData);
 
+                // render table
+                toggleDepreciationTable(transformedData);
             } catch (error) {
                 console.error('Error loading assets data:', error);
                 showError('Failed to load assets data. Please check your connection and try again.');
@@ -357,11 +352,52 @@
             }
         }
 
-        function displayAssetsData(data) {
+        // function displayAssetsData(data) {
+        //     const tableBody = document.getElementById('assetsTableBody');
+        //     const tableSection = document.getElementById('tableSection');
+        //     const noData = document.getElementById('noData');
+        //     const tableTitle = document.getElementById('tableTitle');
+
+        //     tableBody.innerHTML = '';
+
+        //     if (!data || data.length === 0) {
+        //         tableSection.style.display = 'block';
+        //         noData.style.display = 'block';
+        //         tableTitle.textContent = 'Assets (0)';
+        //         return;
+        //     }
+
+        //     tableSection.style.display = 'block';
+        //     noData.style.display = 'none';
+        //     tableTitle.textContent = `Assets (${data.length})`;
+
+        //     data.forEach(asset => {
+        //         const row = document.createElement('tr');
+        //         row.innerHTML = `
+        //             <td><strong>${asset.BillId}</strong></td>
+        //             <td class="date">${formatDate(asset.TransactionDate)}</td>
+        //             <td class="amount">$${formatNumber(asset.TotalAmount)}</td>
+        //             <td>${asset.BillDescription}</td>
+        //             <td><span class="account-tag">${asset.BillAccount}</span></td>
+        //             <td><strong>${asset.BillAccountName}</strong></td>
+        //             <td>
+        //                 <button class="btn-edit" onclick="editAsset('${asset.BillId}')">Edit✏️</button>
+        //             </td>
+        //         `;
+        //         tableBody.appendChild(row);
+        //     });
+        // }
+
+        let currentPage = 1;
+        const pageSize = 6;
+        let globalData = [];
+
+        function displayAssetsData(data, page = 1) {
             const tableBody = document.getElementById('assetsTableBody');
             const tableSection = document.getElementById('tableSection');
             const noData = document.getElementById('noData');
             const tableTitle = document.getElementById('tableTitle');
+            const pagination = document.getElementById('pagination'); // pagination container
 
             tableBody.innerHTML = '';
 
@@ -369,6 +405,7 @@
                 tableSection.style.display = 'block';
                 noData.style.display = 'block';
                 tableTitle.textContent = 'Assets (0)';
+                pagination.innerHTML = '';
                 return;
             }
 
@@ -376,21 +413,67 @@
             noData.style.display = 'none';
             tableTitle.textContent = `Assets (${data.length})`;
 
-            data.forEach(asset => {
+            globalData = data; // save all data
+            currentPage = page;
+
+            // calculate pagination
+            const start = (currentPage - 1) * pageSize;
+            const end = start + pageSize;
+            const pageData = data.slice(start, end);
+
+            // render current page data
+            pageData.forEach(asset => {
                 const row = document.createElement('tr');
                 row.innerHTML = `
-                    <td><strong>${asset.BillId}</strong></td>
-                    <td class="date">${formatDate(asset.TransactionDate)}</td>
-                    <td class="amount">$${formatNumber(asset.TotalAmount)}</td>
-                    <td>${asset.BillDescription}</td>
-                    <td><span class="account-tag">${asset.BillAccount}</span></td>
-                    <td><strong>${asset.BillAccountName}</strong></td>
-                    <td>
-                        <button class="btn-edit" onclick="editAsset('${asset.BillId}')">Edit✏️</button>
-                    </td>
-                `;
+            <td><strong>${asset.BillId}</strong></td>
+            <td class="date">${formatDate(asset.TransactionDate)}</td>
+            <td class="amount">$${formatNumber(asset.TotalAmount)}</td>
+            <td>${asset.BillDescription}</td>
+            <td><span class="account-tag">${asset.BillAccount}</span></td>
+            <td><strong>${asset.BillAccountName}</strong></td>
+            <td>
+                <button class="btn-edit" onclick="editAsset('${asset.BillId}')">Edit✏️</button>
+            </td>
+        `;
                 tableBody.appendChild(row);
             });
+
+            // render pagination
+            renderPagination(data.length);
+        }
+
+        function renderPagination(totalItems) {
+            const pagination = document.getElementById('pagination');
+            pagination.innerHTML = '';
+
+            const totalPages = Math.ceil(totalItems / pageSize);
+
+            // previous page btn
+            const prevBtn = document.createElement('button');
+            prevBtn.textContent = 'Previous';
+            prevBtn.disabled = currentPage === 1;
+            prevBtn.onclick = () => changePage(currentPage - 1);
+            pagination.appendChild(prevBtn);
+
+            // page btn
+            for (let i = 1; i <= totalPages; i++) {
+                const btn = document.createElement('button');
+                btn.textContent = i;
+                btn.classList.toggle('active', i === currentPage);
+                btn.onclick = () => changePage(i);
+                pagination.appendChild(btn);
+            }
+
+            // Next page
+            const nextBtn = document.createElement('button');
+            nextBtn.textContent = 'Next';
+            nextBtn.disabled = currentPage === totalPages;
+            nextBtn.onclick = () => changePage(currentPage + 1);
+            pagination.appendChild(nextBtn);
+        }
+
+        function changePage(page) {
+            displayAssetsData(globalData, page);
         }
 
         // Update the content of the Summary Cards at the top or side of the page based on asset data and date range
@@ -564,7 +647,7 @@
         // Back-end API!!!!!
         async function fetchDepreciationData() {
             try {
-                const response = await fetch('/asset/depreciationEntryJournal');
+                const response = await fetch('/assets/GetAllDatabaseAssets');
                 if (!response.ok) {
                     throw new Error('Network response was not ok');
                 }
@@ -630,7 +713,7 @@
                 months.forEach(m => {
                     const td = document.createElement("td");
                     const value = assetEntry.depreciation[m.key] ?? "";
-                    td.textContent = value;
+                    td.textContent = value !== "" ? Number(value).toFixed(2) : ""; // retain 2 digits
                     if (m.isCurrent) td.classList.add("current-month");
                     tr.appendChild(td);
                 });

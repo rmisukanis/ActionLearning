@@ -1,0 +1,34 @@
+<!-- views/journalEntryTesting.ejs -->
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Journal Entry Testing</title>
+</head>
+<body>
+  <h1>QuickBooks Journal Entry Test</h1>
+  <button id="submitJE">Submit JE</button>
+
+  <h2>Result:</h2>
+  <pre id="result">– no response yet –</pre>
+
+  <script>
+    document.getElementById('submitJE').addEventListener('click', async () => {
+      try {
+        const res = await fetch('/qbJournalEntry/postJournalEntry', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          // you can even send an empty object:
+          body: JSON.stringify({})
+        });
+        const data = await res.json();
+        document.getElementById('result').textContent = JSON.stringify(data, null, 2);
+      } catch (err) {
+        document.getElementById('result').textContent = 'Error: ' + err;
+      }
+    });
+  </script>
+</body>
+</html>

@@ -40,6 +40,14 @@ Asset.init({
     type: DataTypes.ENUM('imported', 'pending', 'reviewed', 'adjustment', 'posted'),
     defaultValue: 'imported'
   },
+  journalEntryId: {
+  type: DataTypes.INTEGER,  
+  references: {
+    model: 'JournalEntries', // 💡 Sequelize uses pluralized table names by default
+    key: 'id',
+  },
+  allowNull: true, // allow null until JE is created
+},
    fullyDepreciated: {
     type: DataTypes.BOOLEAN,
     defaultValue: false

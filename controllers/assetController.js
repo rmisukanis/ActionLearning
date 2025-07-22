@@ -223,84 +223,33 @@ exports.markAssetPosted = async (req, res) => {
     }
 };
 
-/**This is used to just get the value for the journal entry. 
- * @desc Calculate month-end depreciation for all active assets
- * @route GET /assets/depreciation/month-end
- */
+const { calculateCurrentMonthDepreciation } = require('../services/assetService');
+
 exports.calculateMonthEndDepreciation = async (req, res) => {
-    try {
-        // Fetch all posted assets (or your status criteria)
-        const assets = await Asset.findAll({ where: { status: 'posted' } });
-
-        // Sum monthly depreciation for all assets
-        let totalMonthlyDepreciation = 0;
-        const perAssetDepreciation = assets.map(asset => {
-            totalMonthlyDepreciation += asset.monthlyDepreciation || 0;
-            return {
-                id: asset.id,
-                description: asset.description,
-                monthlyDepreciation: asset.monthlyDepreciation || 0,
-            };
-        });
-
-        res.json({
-            totalMonthlyDepreciation,
-            perAssetDepreciation,
-        });
-    } catch (err) {
-        console.error('Error calculating month-end depreciation:', err);
-        res.status(500).json({ error: 'Server error calculating month-end depreciation.' });
-    }
+  try {
+    const result = await calculateCurrentMonthDepreciation();
+    res.json(result);
+  } catch (err) {
+    console.error('Error calculating month-end depreciation:', err);
+    res.status(500).json({ error: 'Server error calculating month-end depreciation.' });
+  }
 };
 
+const { runAccumulatedDepreciationUpdate } = require('../services/assetService');
+
 /**
- * @desc updates accumulated depreciation for all assets
- * It can be updated multiple times a month, current month end will be used to send to QuickBooks
+ * @desc Updates accumulated depreciation for all assets
  * @route POST /assets/depreciation/update-accumulated
  */
 exports.updateAccumulatedDepreciation = async (req, res) => {
   try {
-    const assets = await Asset.findAll({ where: { fullyDepreciated: false } });
-    const now = new Date();
-
-    let updatedAssets = [];
-
-    for (const asset of assets) {
-      const txDate = new Date(asset.transactionDate);
-
-      // Calculate months passed since purchase
-      const elapsedMonths =
-        (now.getFullYear() - txDate.getFullYear()) * 12 +
-        (now.getMonth() - txDate.getMonth());
-
-      // Cap to useful life
-      const totalMonths = asset.usefulLifeYears * 12;
-      const effectiveMonths = Math.min(elapsedMonths, totalMonths);
-
-      const newAccumulated = effectiveMonths * parseFloat(asset.monthlyDepreciation || 0);
-      const fullyDepreciated = effectiveMonths >= totalMonths;
-
-      asset.accumulatedDepreciation = newAccumulated;
-      asset.fullyDepreciated = fullyDepreciated;
-
-      await asset.save();
-      updatedAssets.push({
-        id: asset.id,
-        accumulatedDepreciation: newAccumulated,
-        fullyDepreciated
-      });
-    }
-
-    res.status(200).json({
-      message: 'Accumulated depreciation updated.',
-      updatedAssets
-    });
+    await runAccumulatedDepreciationUpdate();
+    res.status(200).json({ message: 'Accumulated depreciation updated.' });
   } catch (err) {
     console.error('Error updating accumulated depreciation:', err);
     res.status(500).json({ error: 'Server error updating accumulated depreciation.' });
   }
 };
-
 
 
 /**
@@ -316,3 +265,9 @@ exports.getAllAssets = async (req, res) => {
     res.status(500).json({ error: 'Server error fetching assets.' });
   }
 };
+
+
+/**
+ * @desc Get all assets that are fully depreciated
+ * @route GET /assets/fully-depreciated
+ */
