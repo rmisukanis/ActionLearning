@@ -286,11 +286,10 @@
                         displayAssetsData(assetsData);
                         updateSummary(assetsData, startDate, endDate);
                         showAssetMessage('success', 'Assets data loaded successfully!');
-                        showAssetMessage('error', 'Please select both start and end dates.');
                     })
                     .catch(error => {
                         console.error('Error loading assets data:', error);
-                        resultDiv.innerText = 'Failed to load assets data. Please check your connection and try again.';
+                        showAssetMessage('error', 'Error loading assets data:' + error);
                     });
             } catch (error) {
                 console.log(error)
@@ -357,42 +356,7 @@
             }
         }
 
-        // function displayAssetsData(data) {
-        //     const tableBody = document.getElementById('assetsTableBody');
-        //     const tableSection = document.getElementById('tableSection');
-        //     const noData = document.getElementById('noData');
-        //     const tableTitle = document.getElementById('tableTitle');
-
-        //     tableBody.innerHTML = '';
-
-        //     if (!data || data.length === 0) {
-        //         tableSection.style.display = 'block';
-        //         noData.style.display = 'block';
-        //         tableTitle.textContent = 'Assets (0)';
-        //         return;
-        //     }
-
-        //     tableSection.style.display = 'block';
-        //     noData.style.display = 'none';
-        //     tableTitle.textContent = `Assets (${data.length})`;
-
-        //     data.forEach(asset => {
-        //         const row = document.createElement('tr');
-        //         row.innerHTML = `
-        //             <td><strong>${asset.BillId}</strong></td>
-        //             <td class="date">${formatDate(asset.TransactionDate)}</td>
-        //             <td class="amount">$${formatNumber(asset.TotalAmount)}</td>
-        //             <td>${asset.BillDescription}</td>
-        //             <td><span class="account-tag">${asset.BillAccount}</span></td>
-        //             <td><strong>${asset.BillAccountName}</strong></td>
-        //             <td>
-        //                 <button class="btn-edit" onclick="editAsset('${asset.BillId}')">Edit✏️</button>
-        //             </td>
-        //         `;
-        //         tableBody.appendChild(row);
-        //     });
-        // }
-
+        // display asset data with pagination
         const pageSize = 5;
         let globalData = [];
 
@@ -633,7 +597,7 @@
         }
 
         function showAssetMessage(type, message) {
-            const target = type === 'success' ? 'assetSuccessMessage' : 'assetErrorMessage';
+            const target = type === 'success' ? 'successMessage' : 'errorMessage';
             const div = document.getElementById(target);
             div.innerHTML = `<strong>${type === 'success' ? '✅ Success:' : '❌ Error:'}</strong> ${message}`;
             div.style.display = 'block';
@@ -641,7 +605,7 @@
             setTimeout(() => {
                 div.style.display = 'none';
             }, 4000);
-}
+        }
 
         function showDepreciationMessage(type, message) {
             const target = type === 'success' ? 'depreciationSuccessMessage' : 'depreciationErrorMessage';
@@ -653,7 +617,6 @@
                 div.style.display = 'none';
             }, 4000);
         }
-
 
         // Hide error and success prompt information at one time. Call before the request starts to avoid the previous message residue
         function hideMessages() {
@@ -680,11 +643,6 @@
                 }
                 const data = await response.json();
 
-                // supposed data format：
-                // {
-                //   "depreciationExpense": 500
-                // }
-
                 document.getElementById('depreciationExpense').value = data.depreciationExpense ?? 'N/A';
             } catch (error) {
                 console.error('Error fetching depreciation data:', error);
@@ -693,119 +651,111 @@
             }
         }
 
-        // fetchDepreciationData() is executed immediately after the entire HTML page DOM is loaded, 
-        // ensuring that the data is automatically fetched and displayed when the page is opened
-        window.addEventListener('DOMContentLoaded', fetchDepreciationData);
-
         // Based on the depreciation data returned by the backend, an "asset depreciation table" is dynamically generated and displayed, 
         // covering the depreciation amount distribution for a total of 13 months before and after the current month.
-    let depreciationData = [];  // Save original data
-    const rowsPerPage = 2;
-    let currentPage = 1;
+        let depreciationData = [];  // Save original data
+        const rowsPerPage = 2;
+        let currentPage = 1;
 
-    function toggleDepreciationTable(data) {
-        depreciationData = data;  // Save data
-        currentPage = 1;          // Reset pages
-        renderDepreciationTable();
-    }
-
-    function renderDepreciationTable() {
-        const table = document.getElementById("depreciationTable");
-        table.innerHTML = "";
-
-        const today = new Date();
-        const currentMonth = new Date(today.getFullYear(), today.getMonth(), 1);
-
-        const months = [];
-        for (let i = -6; i <= 6; i++) {
-            const d = new Date(currentMonth.getFullYear(), currentMonth.getMonth() + i, 1);
-            const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
-            const label = d.toLocaleString("en-US", { month: "short" }).toUpperCase();
-            months.push({ key, label, isCurrent: i === 0 });
+        function toggleDepreciationTable(data) {
+            depreciationData = data;  // Save data
+            currentPage = 1;          // Reset pages
+            renderDepreciationTable();
         }
 
-    // 表头
-        const theadRow = document.createElement("tr");
-        theadRow.appendChild(document.createElement("th"));
-        months.forEach(m => {
-            const th = document.createElement("th");
-            th.textContent = m.label;
-            if (m.isCurrent) th.classList.add("current-month");
-            theadRow.appendChild(th);
-        });
-        table.appendChild(theadRow);
+        function renderDepreciationTable() {
+            const table = document.getElementById("depreciationTable");
+            table.innerHTML = "";
 
-    // Current page data
-        const start = (currentPage - 1) * rowsPerPage;
-        const end = start + rowsPerPage;
-        const pageData = depreciationData.slice(start, end);
+            const today = new Date();
+            const currentMonth = new Date(today.getFullYear(), today.getMonth(), 1);
 
-        pageData.forEach(assetEntry => {
-            const tr = document.createElement("tr");
-            const tdAsset = document.createElement("td");
-            tdAsset.textContent = assetEntry.asset;
-            tdAsset.classList.add("asset-name");
-            tr.appendChild(tdAsset);
+            const months = [];
+            for (let i = -6; i <= 6; i++) {
+                const d = new Date(currentMonth.getFullYear(), currentMonth.getMonth() + i, 1);
+                const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+                const label = d.toLocaleString("en-US", { month: "short" }).toUpperCase();
+                months.push({ key, label, isCurrent: i === 0 });
+            }
 
+            const theadRow = document.createElement("tr");
+            theadRow.appendChild(document.createElement("th"));
             months.forEach(m => {
-                const td = document.createElement("td");
-                const value = assetEntry.depreciation[m.key] ?? "";
-                td.textContent = value !== "" ? Number(value).toFixed(2) : "";
-                if (m.isCurrent) td.classList.add("current-month");
-                tr.appendChild(td);
+                const th = document.createElement("th");
+                th.textContent = m.label;
+                if (m.isCurrent) th.classList.add("current-month");
+                theadRow.appendChild(th);
+            });
+            table.appendChild(theadRow);
+
+            // Current page data
+            const start = (currentPage - 1) * rowsPerPage;
+            const end = start + rowsPerPage;
+            const pageData = depreciationData.slice(start, end);
+
+            pageData.forEach(assetEntry => {
+                const tr = document.createElement("tr");
+                const tdAsset = document.createElement("td");
+                tdAsset.textContent = assetEntry.asset;
+                tdAsset.classList.add("asset-name");
+                tr.appendChild(tdAsset);
+
+                months.forEach(m => {
+                    const td = document.createElement("td");
+                    const value = assetEntry.depreciation[m.key] ?? "";
+                    td.textContent = value !== "" ? Number(value).toFixed(2) : "";
+                    if (m.isCurrent) td.classList.add("current-month");
+                    tr.appendChild(td);
+                });
+
+                table.appendChild(tr);
             });
 
-            table.appendChild(tr);
-        });
-
-        renderDepreciationPagination();
-    }
-
-    function renderDepreciationPagination() {
-        const totalPages = Math.ceil(depreciationData.length / rowsPerPage);
-        const pagination = document.getElementById("depreciationPagination");
-        pagination.innerHTML = "";
-
-        if (totalPages <= 1) return;
-
-        // Previous button
-        const prevBtn = document.createElement("button");
-        prevBtn.textContent = "Previous";
-        prevBtn.disabled = currentPage === 1;
-        // prevBtn.className = "btn btn-secondary";
-        prevBtn.onclick = () => {
-            currentPage--;
-            renderDepreciationTable();
-        };
-        pagination.appendChild(prevBtn);
-
-    // Page number buttons
-        for (let i = 1; i <= totalPages; i++) {
-            const btn = document.createElement("button");
-            btn.textContent = i;
-            // btn.className = "btn";
-            btn.classList.toggle('active', i === currentPage);  // Highlight current page
-            btn.onclick = () => {
-                currentPage = i;
-                renderDepreciationTable();
-            };
-            pagination.appendChild(btn);
+            renderDepreciationPagination();
         }
 
-        // Next button
-        const nextBtn = document.createElement("button");
-        nextBtn.textContent = "Next";
-        nextBtn.disabled = currentPage === totalPages;
-        // nextBtn.className = "btn";
-        nextBtn.onclick = () => {
-            currentPage++;
-            renderDepreciationTable();
-        };
-        pagination.appendChild(nextBtn);
-    }
+        function renderDepreciationPagination() {
+            const totalPages = Math.ceil(depreciationData.length / rowsPerPage);
+            const pagination = document.getElementById("depreciationPagination");
+            pagination.innerHTML = "";
 
-        
+            if (totalPages <= 1) return;
 
+            // Previous button
+            const prevBtn = document.createElement("button");
+            prevBtn.textContent = "Previous";
+            prevBtn.disabled = currentPage === 1;
+            // prevBtn.className = "btn btn-secondary";
+            prevBtn.onclick = () => {
+                currentPage--;
+                renderDepreciationTable();
+            };
+            pagination.appendChild(prevBtn);
+
+            // Page number buttons
+            for (let i = 1; i <= totalPages; i++) {
+                const btn = document.createElement("button");
+                btn.textContent = i;
+                // btn.className = "btn";
+                btn.classList.toggle('active', i === currentPage);  // Highlight current page
+                btn.onclick = () => {
+                    currentPage = i;
+                    renderDepreciationTable();
+                };
+                pagination.appendChild(btn);
+            }
+
+            // Next button
+            const nextBtn = document.createElement("button");
+            nextBtn.textContent = "Next";
+            nextBtn.disabled = currentPage === totalPages;
+            // nextBtn.className = "btn";
+            nextBtn.onclick = () => {
+                currentPage++;
+                renderDepreciationTable();
+            };
+            pagination.appendChild(nextBtn);
+        }
 
         // Update button function: pull the monthly depreciation amount and display it in the input box
         document.getElementById('updateJournalBtn').addEventListener('click', async () => {
@@ -816,13 +766,13 @@
                 const data = await response.json();
                 const amount = data.totalMonthlyDepreciation ?? 0;
 
-            document.getElementById('depreciationExpense').value = amount.toFixed(2);
-            showDepreciationMessage('success','Updated depreciation expense for the current month.');
-        } catch (err) {
-            console.error(err);
-            showDepreciationMessage('error', 'Unable to update depreciation amount. Please try again.');
-        }
-    });
+                document.getElementById('depreciationExpense').value = amount.toFixed(2);
+                showDepreciationMessage('success', 'Updated depreciation expense for the current month.');
+            } catch (err) {
+                console.error(err);
+                showDepreciationMessage('error', 'Unable to update depreciation amount. Please try again.');
+            }
+        });
 
 
         // Submit button function: Submit form data to QuickBooks
