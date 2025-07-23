@@ -236,9 +236,9 @@
         });
 
         // Handle edit form submission
-        document.getElementById('editForm').addEventListener('submit', function (e) {
+        document.getElementById('editForm').addEventListener('submit', async function (e) {
             e.preventDefault();
-            saveAssetChanges();
+            await saveAssetChanges();
             //reload data after saving
             loadAssetsData();
             // Load depreciation table while submitting form            
@@ -682,17 +682,14 @@
 
                 // supposed data format：
                 // {
-                //   "depreciationExpense": 500,
-                //   "accumulatedDepreciation": 10000
+                //   "depreciationExpense": 500
                 // }
 
                 document.getElementById('depreciationExpense').value = data.depreciationExpense ?? 'N/A';
-                document.getElementById('accumulatedDepreciation').value = data.accumulatedDepreciation ?? 'N/A';
             } catch (error) {
                 console.error('Error fetching depreciation data:', error);
                 // default values
                 document.getElementById('depreciationExpense').value = 'Loading...';
-                document.getElementById('accumulatedDepreciation').value = 'Loading...';
             }
         }
 
@@ -810,14 +807,14 @@
         
 
 
-    // Update button function: pull the monthly depreciation amount and display it in the input box
-    document.getElementById('updateJournalBtn').addEventListener('click', async () => {
-        try {
-            const response = await fetch('/assets/calculateMonthEndDepreciation');
-            if (!response.ok) throw new Error('Failed to calculate depreciation');
+        // Update button function: pull the monthly depreciation amount and display it in the input box
+        document.getElementById('updateJournalBtn').addEventListener('click', async () => {
+            try {
+                const response = await fetch('/assets/calculateMonthEndDepreciation');
+                if (!response.ok) throw new Error('Failed to calculate depreciation');
 
-            const data = await response.json();
-            const amount = data.totalMonthlyDepreciation ?? 0;
+                const data = await response.json();
+                const amount = data.totalMonthlyDepreciation ?? 0;
 
             document.getElementById('depreciationExpense').value = amount.toFixed(2);
             showDepreciationMessage('success','Updated depreciation expense for the current month.');
@@ -828,26 +825,26 @@
     });
 
 
-    // Submit button function: Submit form data to QuickBooks
-    document.getElementById('submitJournalBtn').addEventListener('click', async () => {
-        try {
-            const response = await fetch('/qbJournalEntry/postJournalEntry', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({}) // If data needs to be transferred, fill it on demand
-            });
+        // Submit button function: Submit form data to QuickBooks
+        document.getElementById('submitJournalBtn').addEventListener('click', async () => {
+            try {
+                const response = await fetch('/qbJournalEntry/postJournalEntry', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({}) // If data needs to be transferred, fill it on demand
+                });
 
-            if (!response.ok) throw new Error('Failed to post journal entry');
+                if (!response.ok) throw new Error('Failed to post journal entry');
 
-            const result = await response.json();
-            showDepreciationMessage('success', 'Journal entry submitted successfully!');
-        } catch (err) {
-            console.error(err);
-            showDepreciationMessage('error', 'Failed to submit journal entry. Please check your QuickBooks connection.');
-        }
-    });
+                const result = await response.json();
+                showDepreciationMessage('success', 'Journal entry submitted successfully!');
+            } catch (err) {
+                console.error(err);
+                showDepreciationMessage('error', 'Failed to submit journal entry. Please check your QuickBooks connection.');
+            }
+        });
 
     </script>
 </body>
