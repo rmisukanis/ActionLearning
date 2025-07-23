@@ -737,7 +737,7 @@
     // Submit button function: Submit form data to QuickBooks
     document.getElementById('submitJournalBtn').addEventListener('click', async () => {
         try {
-            const response = await fetch('/postJournalEntry', {
+            const response = await fetch('/qbJournalEntry/postJournalEntry', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
