@@ -545,13 +545,13 @@ a:visited {
   color: #333;
 }
 
-.pagination {
+.pagination, .pagination-controls {
   margin-top: 10px;
   margin-bottom: 10px;
   text-align: center;
 }
 
-.pagination button {
+.pagination button, .pagination-controls button {
   background: #f9f9f9;
   color: rgb(0, 0, 0);
   padding: 8px 16px;
@@ -565,7 +565,13 @@ a:visited {
   text-transform: uppercase;
 }
 
-.pagination button.active {
+.pagination button.active, .pagination-controls button.active {
   background-color: #00671ca8;
   color: white;
 }
+
+.message-block {
+  padding: 16px 32px;
+}
+
+
