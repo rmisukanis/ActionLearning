@@ -229,9 +229,9 @@
         });
 
         // Handle edit form submission
-        document.getElementById('editForm').addEventListener('submit', function (e) {
+        document.getElementById('editForm').addEventListener('submit', async function (e) {
             e.preventDefault();
-            saveAssetChanges();
+            await saveAssetChanges();
             //reload data after saving
             loadAssetsData();
             // Load depreciation table while submitting form            
@@ -716,44 +716,44 @@
             });
         }
 
-         // Update button function: pull the monthly depreciation amount and display it in the input box
-    document.getElementById('updateJournalBtn').addEventListener('click', async () => {
-        try {
-            const response = await fetch('/assets/calculateMonthEndDepreciation');
-            if (!response.ok) throw new Error('Failed to calculate depreciation');
+        // Update button function: pull the monthly depreciation amount and display it in the input box
+        document.getElementById('updateJournalBtn').addEventListener('click', async () => {
+            try {
+                const response = await fetch('/assets/calculateMonthEndDepreciation');
+                if (!response.ok) throw new Error('Failed to calculate depreciation');
 
-            const data = await response.json();
-            const amount = data.totalMonthlyDepreciation ?? 0;
+                const data = await response.json();
+                const amount = data.totalMonthlyDepreciation ?? 0;
 
-            document.getElementById('depreciationExpense').value = amount.toFixed(2);
-            showSuccess('Updated depreciation expense for the current month.');
-        } catch (err) {
-            console.error(err);
-            showError('Unable to update depreciation amount. Please try again.');
-        }
-    });
+                document.getElementById('depreciationExpense').value = amount.toFixed(2);
+                showSuccess('Updated depreciation expense for the current month.');
+            } catch (err) {
+                console.error(err);
+                showError('Unable to update depreciation amount. Please try again.');
+            }
+        });
 
 
-    // Submit button function: Submit form data to QuickBooks
-    document.getElementById('submitJournalBtn').addEventListener('click', async () => {
-        try {
-            const response = await fetch('/qbJournalEntry/postJournalEntry', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({}) // If data needs to be transferred, fill it on demand
-            });
+        // Submit button function: Submit form data to QuickBooks
+        document.getElementById('submitJournalBtn').addEventListener('click', async () => {
+            try {
+                const response = await fetch('/qbJournalEntry/postJournalEntry', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({}) // If data needs to be transferred, fill it on demand
+                });
 
-            if (!response.ok) throw new Error('Failed to post journal entry');
+                if (!response.ok) throw new Error('Failed to post journal entry');
 
-            const result = await response.json();
-            showSuccess('Journal entry submitted successfully!');
-        } catch (err) {
-            console.error(err);
-            showError('Failed to submit journal entry. Please check your QuickBooks connection.');
-        }
-    });
+                const result = await response.json();
+                showSuccess('Journal entry submitted successfully!');
+            } catch (err) {
+                console.error(err);
+                showError('Failed to submit journal entry. Please check your QuickBooks connection.');
+            }
+        });
 
     </script>
 </body>
